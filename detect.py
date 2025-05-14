@@ -12,7 +12,7 @@ def mask(blue, yellow, green, red, purple):
 video = cv.VideoCapture(0);
 
 blue = [255, 0, 0]
-yellow = [255, 255, 0]
+yellow = [0, 255, 255]
 red = [0, 0, 255]
 purple = [128, 0, 128]
 green = [0, 255, 0]
@@ -57,7 +57,7 @@ while True:
 
     # contours, hieracrhy = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-    # cv.imshow("mask", mask)
+    cv.imshow("mask", master_mask)
     cv.imshow("webcam", res)
 
     # if len(contours) != 0 :
