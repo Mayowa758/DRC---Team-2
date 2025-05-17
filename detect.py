@@ -1,4 +1,5 @@
 import cv2 as cv
+from PIL import Image
 import numpy as np
 
 from util import get_limits
@@ -15,6 +16,15 @@ def get_mask(img, range):
 
     return cv.inRange(img, lower, upper)
 
+def colour_detect_test(mask_):
+    mask_ = Image.fromarray(mask_blue)
+
+    bbox = mask_.getbbox()
+    if bbox is not None:
+        x1, y1, x2, y2 = bbox
+        img = cv.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 5)
+    return img
+
 def mask(blue, yellow, green, red, purple):
     return blue + yellow + green + red + purple
 
@@ -29,9 +39,8 @@ green = [0, 255, 0]
 while True:
 
     _, img = video.read()
-    hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     img = cv.GaussianBlur(img, (13, 13), 0)
-    # img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+    hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
     # BLUE and YELLOW are for road lines
     # RED and PURPLE obstacle detection draw rectangles maybe
@@ -54,22 +63,19 @@ while True:
 
     master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
 
-    # to detect one of the colours 
     res = cv.bitwise_and(img, img, mask =master_mask)
+    # contours, hieracrhy = cv.findContours(mask_yellow, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    # print(bbox)
 
-
-    # contours, hieracrhy = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    # if len(contours) != 0:
+    #     for contour in contours:
+    #         if cv.contourArea(contour) > 500:
+    #             x, y, w, h = cv.boundingRect(contour)
+    #             cv.rectangle(img, (x,y), (x + w, y + h), (0, 0, 255), 3)
 
     cv.imshow("mask", master_mask)
     cv.imshow("webcam", img)
 
-    # if len(contours) != 0 :
-    #     for contour in contours:
-    #         if cv.contourArea(contour) > 500:
-    #             x, y, w, h = cv.boundingRect(contour)
-    #             cv.rectangle(img, (x,y), (x + w + y + h), (0, 0, 255), 3)
-
-    
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
