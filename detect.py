@@ -4,7 +4,7 @@ import numpy as np
 
 from util import get_limits
 
-def get_mask(img, range):
+def get_mask(img, range, kernel):
     mask = None
     for lower, upper in range:
         partial_mask = cv.inRange(img, lower, upper)
@@ -12,29 +12,57 @@ def get_mask(img, range):
             mask = partial_mask
         else:
             mask = cv.bitwise_or(mask, partial_mask)
+    mask = cv.dilate(mask, kernel)
+    return mask
 
-
-    return cv.inRange(img, lower, upper)
-
-def colour_detect_test(mask_):
-    mask_ = Image.fromarray(mask_blue)
-
+# PIL
+def colour_detect_test(img, mask, label, colour):
+    mask_ = Image.fromarray(mask)
+    colour = hsv_to_bgr(colour)
     bbox = mask_.getbbox()
-    if bbox is not None:
-        x1, y1, x2, y2 = bbox
-        img = cv.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 5)
-    return img
+    area = cv.contourArea(bbox)
+    if bbox is not None and area > 300:
+        x, y, w, h = bbox
+        img = cv.rectangle(img, (x, y), (w, h), colour, 5)
+        cv.putText(img, label, (x, y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
+
+def draw_boundary_boxes(img, mask, label, colour):
+    colour = hsv_to_bgr(colour)
+    for i in range(len(mask)):
+        contours, hierarchy = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        if len(contours) != 0:
+            for contour in contours:
+                area = cv.contourArea(contour)
+                if(area > 500):
+                    x, y, w, h = cv.boundingRect(contour)
+                    cv.rectangle(img, (x,y), (x + w, y + h), colour, 2)
+                    cv.putText(img, label, (x,y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
 
 def mask(blue, yellow, green, red, purple):
-    return blue + yellow + green + red + purple
-
+    # bitwise or operation
+    combined  = blue | yellow | green | red | purple
+    return combined
 video = cv.VideoCapture(0);
 
-blue = [255, 0, 0]
-yellow = [0, 255, 255]
-red = [0, 0, 255]
-purple = [128, 0, 128]
-green = [0, 255, 0]
+
+def hsv_to_bgr(colour):
+    hsv_np = np.uint8([[colour]])
+    bgr_np = cv.cvtColor(hsv_np, cv.COLOR_HSV2BGR)
+    return tuple(int(x) for x in bgr_np[0][0])
+
+# This is in HSV
+blue = [90, 60, 100]
+yellow = [15, 120, 170]
+red = [0, 130, 150]
+purple = [135, 65, 110]
+green = [30, 170, 170]
+
+# Might need this idk
+BLUE = 0
+YELLOW = 1
+RED = 2
+PURPLE = 3
+GREEN = 4
 
 while True:
 
@@ -46,32 +74,39 @@ while True:
     # RED and PURPLE obstacle detection draw rectangles maybe
     # GREEN is the end
 
+    kernel = np.ones((5,5), "uint8")
+
     blue_range = get_limits(blue)
     yellow_range = get_limits(yellow)
     red_range = get_limits(red)
     purple_range = get_limits(purple)
     green_range = get_limits(green)
 
-    mask_blue = get_mask(hsv_img, blue_range)
-    mask_yellow = get_mask(hsv_img, yellow_range)
-    
+    mask_blue = get_mask(hsv_img, blue_range, kernel)
+    mask_yellow = get_mask(hsv_img, yellow_range, kernel)
+    mask_red = get_mask(hsv_img, red_range, kernel)
+    mask_purple = get_mask(hsv_img, purple_range, kernel)
+    mask_green = get_mask(hsv_img, green_range, kernel)
 
-        # lower mask (0-10)
-    mask_red = get_mask(hsv_img, red_range)
-    mask_purple = get_mask(hsv_img, purple_range)
-    mask_green = get_mask(hsv_img, green_range)
+    colour_masks = [
+        {"mask": mask_blue, "label": "blue", "colour": blue},
+        {"mask": mask_yellow, "label": "yellow", "colour": yellow},
+        {"mask": mask_red, "label": "red", "colour": red},
+        {"mask": mask_purple, "label": "purple", "colour": purple},
+        {"mask": mask_green, "label": "green", "colour": green},
+    ]
+
+    # Uses PIL
+    # for entry in colour_masks:
+    #     colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
+
+    # Uses contours
+    for entry in colour_masks:
+        draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
 
     master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
-
-    res = cv.bitwise_and(img, img, mask =master_mask)
-    # contours, hieracrhy = cv.findContours(mask_yellow, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    # print(bbox)
-
-    # if len(contours) != 0:
-    #     for contour in contours:
-    #         if cv.contourArea(contour) > 500:
-    #             x, y, w, h = cv.boundingRect(contour)
-    #             cv.rectangle(img, (x,y), (x + w, y + h), (0, 0, 255), 3)
+    # res = cv.bitwise_and(img, img, mask =master_mask)
+    # contours, hierarchy = cv.findContours(mask_red, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     cv.imshow("mask", master_mask)
     cv.imshow("webcam", img)
