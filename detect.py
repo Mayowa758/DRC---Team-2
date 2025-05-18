@@ -20,8 +20,7 @@ def colour_detect_test(img, mask, label, colour):
     mask_ = Image.fromarray(mask)
     colour = hsv_to_bgr(colour)
     bbox = mask_.getbbox()
-    area = cv.contourArea(bbox)
-    if bbox is not None and area > 300:
+    if bbox is not None:
         x, y, w, h = bbox
         img = cv.rectangle(img, (x, y), (w, h), colour, 5)
         cv.putText(img, label, (x, y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
@@ -51,11 +50,11 @@ def hsv_to_bgr(colour):
     return tuple(int(x) for x in bgr_np[0][0])
 
 # This is in HSV
-blue = [90, 60, 100]
-yellow = [15, 120, 170]
-red = [0, 130, 150]
-purple = [135, 65, 110]
-green = [30, 170, 170]
+blue = [110, 160, 180]
+yellow = [30, 255, 255]
+red = [0, 255, 255]
+purple = [150, 255, 128]
+green = [60, 255, 255]
 
 # Might need this idk
 BLUE = 0
@@ -97,12 +96,12 @@ while True:
     ]
 
     # Uses PIL
-    # for entry in colour_masks:
-    #     colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
+    for entry in colour_masks:
+        colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
 
     # Uses contours
-    for entry in colour_masks:
-        draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
+    # for entry in colour_masks:
+    #     draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
 
     master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
     # res = cv.bitwise_and(img, img, mask =master_mask)

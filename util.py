@@ -7,10 +7,10 @@ def get_limits(hsv_colour, error=10) :
     h = hsv_colour[0]
     s = hsv_colour[1]
     v = hsv_colour[2]
-    s_lower = max(s - 50, 0)
-    s_upper = min(v + 50, 255) 
-    v_lower = max(v - 50, 0)
-    v_upper = min(v + 50, 255) 
+    s_lower = 100
+    s_upper = 255
+    v_lower = 100
+    v_upper = 255
 
     if h < 10:
         lowerLimit1 = 0, s_lower, v_lower
