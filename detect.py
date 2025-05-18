@@ -41,7 +41,11 @@ def mask(blue, yellow, green, red, purple):
     # bitwise or operation
     combined  = blue | yellow | green | red | purple
     return combined
-video = cv.VideoCapture(0);
+video = cv.VideoCapture(0)
+
+video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+video.set(cv.CAP_PROP_FPS, 30)
 
 
 def hsv_to_bgr(colour):
