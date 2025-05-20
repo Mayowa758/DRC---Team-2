@@ -52,6 +52,10 @@ def hsv_to_bgr(colour):
     bgr_np = cv.cvtColor(hsv_np, cv.COLOR_HSV2BGR)
     return tuple(int(x) for x in bgr_np[0][0])
 
+def road_mask(blue, yellow):
+    new_mask = blue | yellow
+    return new_mask
+
 # This is in HSV
 blue = [110, 160, 180]
 yellow = [30, 255, 255]
