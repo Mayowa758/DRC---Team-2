@@ -47,7 +47,6 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 video.set(cv.CAP_PROP_FPS, 30)
 
-
 def hsv_to_bgr(colour):
     hsv_np = np.uint8([[colour]])
     bgr_np = cv.cvtColor(hsv_np, cv.COLOR_HSV2BGR)
