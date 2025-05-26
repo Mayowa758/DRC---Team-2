@@ -1,8 +1,8 @@
 import cv2 as cv
 from PIL import Image
 import numpy as np
-
 from util import get_limits
+from configure.undistort_data import *
 
 def get_mask(img, range, kernel):
     mask = None
@@ -70,12 +70,16 @@ RED = 2
 PURPLE = 3
 GREEN = 4
 
+h, w = video.shape[:2]
+mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
 while True:
 
     _, img = video.read()
+    img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
     img = cv.GaussianBlur(img, (13, 13), 0)
     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-
+    
     # BLUE and YELLOW are for road lines
     # RED and PURPLE obstacle detection draw rectangles maybe
     # GREEN is the end
