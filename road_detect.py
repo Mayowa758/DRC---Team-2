@@ -2,37 +2,18 @@ import cv2 as cv
 import numpy as np
 from util import get_limits
 from configure.undistort_data import *
-
-# data = np.load('configure/camera_calibration.npz')
-# mtx = data['camera_matrix']
-# dist = data['dist_coeffs']
-# newcameramtx = data['new_camera_matrix']
-# roi = data['roi']
-
-# from colour_detect import get_mask
+from colour_detect import *
 
 # from colour_detect import mask_blue, mask_yellow
 video = cv.VideoCapture(0)
 
 # Colour in HSV
-blue = [110, 255, 255]
-yellow = [30, 255, 255]
+# blue = [110, 255, 255]
+# yellow = [30, 255, 255]
 
 def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
-
-def get_mask(img, range, kernel):
-    mask = None
-    for lower, upper in range:
-        partial_mask = cv.inRange(img, lower, upper)
-        if mask is None:
-            mask = partial_mask
-        else:
-            mask = cv.bitwise_or(mask, partial_mask)
-    mask = cv.dilate(mask, kernel)
-    return mask
-
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
@@ -45,7 +26,6 @@ if not ret or frame is None:
 
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
-
 
 while True:
     __, img = video.read()
