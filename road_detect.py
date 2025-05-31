@@ -29,6 +29,7 @@ mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), c
 
 while True:
     __, img = video.read()
+    prev = img
     img = cv.GaussianBlur(img, (13, 13), 0)
     img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
@@ -41,7 +42,9 @@ while True:
     drive_mask = road_mask(blue_mask, yellow_mask)
 
     cv.imshow('drive_mask', drive_mask)
-    cv.imshow('actual', img)
+    cv.imshow('before', prev)
+    cv.imshow('after', img)
+
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
