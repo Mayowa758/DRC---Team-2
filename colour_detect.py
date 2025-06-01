@@ -53,6 +53,7 @@ yellow = [30, 255, 255]
 red = [0, 255, 255]
 purple = [150, 255, 128]
 green = [60, 255, 255]
+kernel = np.ones((5,5), "uint8")
 
 def run_video():
     video = cv.VideoCapture(0)
@@ -84,8 +85,6 @@ def run_video():
         # BLUE and YELLOW are for road lines
         # RED and PURPLE obstacle detection draw rectangles maybe
         # GREEN is the end
-
-        kernel = np.ones((5,5), "uint8")
 
         blue_range = get_limits(blue)
         yellow_range = get_limits(yellow)

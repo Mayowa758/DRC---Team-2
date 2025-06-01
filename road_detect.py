@@ -7,10 +7,6 @@ from colour_detect import *
 # from colour_detect import mask_blue, mask_yellow
 video = cv.VideoCapture(0)
 
-# Colour in HSV
-# blue = [110, 255, 255]
-# yellow = [30, 255, 255]
-
 def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
@@ -20,12 +16,17 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 video.set(cv.CAP_PROP_FPS, 30)
 
+width = 640
+height = 480
+
 ret, frame = video.read()
 if not ret or frame is None:
     raise RuntimeError("Failed to read frame from camera")
 
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (width, height), 0, (width, height))
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
 
 while True:
     __, img = video.read()
