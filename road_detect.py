@@ -15,9 +15,9 @@ def road_mask(blue, yellow):
 
 def perspective_transform(img):
     # These values may need to change
-    tl = (200, 200)
+    tl = (150, 300)
     bl = (0, 472)
-    tr = (400,  200)
+    tr = (480,  300)
     br = (600, 472)
 
     src_points = np.float32([tl, bl, tr, br])
