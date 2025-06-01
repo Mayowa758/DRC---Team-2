@@ -83,9 +83,7 @@ while(cap.isOpened()):
 
     # print(img)
     cropped_image = region_of_interest(canny_image)
-
     lines = cv.HoughLinesP(cropped_image, 2, np.pi/180, 100, np.array([]), minLineLength=40, maxLineGap=5)
-
     average_lines = average_slope_intercept(frame, lines)
 
     line_image = display_lines(frame, average_lines)
