@@ -6,6 +6,8 @@ from colour_detect import *
 
 # from colour_detect import mask_blue, mask_yellow
 video = cv.VideoCapture(0)
+window_width = 640
+window_height = 480
 
 def road_mask(blue, yellow):
     new_mask = blue | yellow
@@ -18,28 +20,23 @@ def perspective_transform(img):
     tr = (400,  200)
     br = (600, 472)
 
+    src_points = np.float32([tl, bl, tr, br])
+    dst_points = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
+
     cv.circle(img, tl, 5, (0, 0, 255), -1)
     cv.circle(img, bl, 5, (0, 0, 255), -1)
     cv.circle(img, tr, 5, (0, 0, 255), -1)
     cv.circle(img, br, 5, (0, 0, 255), -1)
 
-    pts1 = np.float32([tl, bl, tr, br])
-    pts2 = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
-    matrix = cv.getPerspectiveTransform(pts1, pts2)
-    transformed_frame = cv.warpPerspective(frame, matrix, (640, 480))
+    matrix = cv.getPerspectiveTransform(src_points, dst_points)
+    transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
 
     return transformed_frame
 
-    
-
-
 # Change the frame rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
-
-window_width = 640
-window_height = 480
 
 ret, frame = video.read()
 if not ret or frame is None:
@@ -50,7 +47,6 @@ newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, windo
 
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
-
 
 while True:
     __, img = video.read()
