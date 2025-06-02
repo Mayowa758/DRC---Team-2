@@ -12,9 +12,19 @@
 
 # Approximate the Centreline
 # Find the left and right boundary pixels and take their midpoint as the centre of that row
+import cv2
 import numpy as np
 
+# Load the image (grayscale)
+image = cv2.imread('track.png', cv2.IMREAD_GRAYSCALE)
 
+# Threshold the image to get binary mask (track is white)
+_, binary = cv2.threshold(image, thresh=127, maxval=255, type=cv2.THRESH_BINARY)
+
+# Optional: Convert to boolean or 0/1 if you prefer
+binary = (binary > 0).astype(np.uint8)
+
+## You need an image to define binary
 height, width = binary.shape
 centerline = []
 
@@ -79,7 +89,7 @@ def find_lookahead_point(car_pos, path_points, lookahead_distance):
         # Distance between car and supposed start point
         f = start - car_pos
 
-        # 
+        # Need to research this.
         a = np.dot(d, d)
         b = 2 * np.dot(f, d)
         c = np.dot(f, f) - lookahead_distance**2
