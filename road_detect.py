@@ -33,6 +33,9 @@ def perspective_transform(img):
 
     return transformed_frame
 
+def get_largest_contour(contours):
+    return max(contours, key=cv.contourArea) if contours else None
+
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
@@ -53,18 +56,34 @@ while True:
     prev = img
     img = cv.GaussianBlur(img, (13, 13), 0)
     img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
+
+    # Bird's eye transformation
+    transformed_frame = perspective_transform(img)
     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
     kernel = np.ones((5,5), "uint8")
 
-    # Bird's eye transformation
     blue_range = get_limits(blue)
     yellow_range = get_limits(yellow)
-    blue_mask = get_mask(hsv_img, blue_range, kernel)
-    yellow_mask = get_mask(hsv_img, yellow_range, kernel)
+
+    blue_mask = get_mask(img, blue_range, kernel)
+    yellow_mask = get_mask(img, yellow_range, kernel)
+
+    blue_mask_bv = get_mask(transformed_frame, blue_range, kernel)
+    yellow_mask_bv = get_mask(transformed_frame, yellow_range, kernel)
     drive_mask = road_mask(blue_mask, yellow_mask)
 
-    transformed_frame = perspective_transform(img)
+    blue_contours, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    yellow_contours, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    blue_line = get_largest_contour(blue_contours)
+    yellow_line = get_largest_contour(yellow_contours)
+
+    lane_area_mask = np.zeros_like(blue_mask)
+
+    # if blue_line is not None and yellow is not None:
+    #     blue_points = blue_line.squeeze()
+    #     yellow_points = yellow_line.sque
 
     cv.imshow('drive_mask', drive_mask)
     cv.imshow('before', prev)
