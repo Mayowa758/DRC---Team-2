@@ -34,7 +34,7 @@ def perspective_transform(img):
     return transformed_frame
 
 def get_largest_contour(contours):
-    return max(contours, key=cv.contourArea) if contours else None
+    return cv.contourArea(contours, cv.contourArea)
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -65,29 +65,42 @@ while True:
 
     # Bird's eye transformation
     transformed_frame = perspective_transform(img)
+    hsv_img_bv = cv.cvtColor(transformed_frame, cv.COLOR_BGR2HSV)
+    blue_mask_bv = get_mask(hsv_img_bv, blue_range, kernel)
+    yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
+    drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    # cv.imshow('drive_mask', drive_mask)
-    cv.imshow('blue', blue_mask)
-    cv.imshow('yellow', yellow_mask)
+    cv.imshow('drive_mask_bv', drive_mask_bv)
+    # cv.imshow('blue', blue_mask)
+    # cv.imshow('yellow', yellow_mask)
 
-    blue_mask_bv = get_mask(transformed_frame, blue_range, kernel)
-    yellow_mask_bv = get_mask(transformed_frame, yellow_range, kernel)
-    
-    blue_contours, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    yellow_contours, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    yellow_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-    blue_line = get_largest_contour(blue_contours)
-    yellow_line = get_largest_contour(yellow_contours)
+    if blue_contour and yellow_contour:
 
-    # lane_area_mask = np.zeros_like(blue_mask)
+        blue_line = get_largest_contour(blue_contour)
+        yellow_line = get_largest_contour(yellow_contour)
 
-    # if blue_line is not None and yellow is not None:
-    #     blue_points = blue_line.squeeze()
-    #     yellow_points = yellow_line.sque
+        M_blue = cv.moments(blue_line)
+        M_yellow = cv.moments(yellow_line)
 
-    
-    cv.imshow('before', prev)
-    cv.imshow('after', img)
+        if M_blue["00"] != 0 and M_yellow["00"] != 0:
+            cx_blue = int(M_blue["10"]/M_blue["00"])
+            cy_blue = int(M_blue["01"]/M_blue["00"])
+
+            cx_yellow = int(M_yellow["10"]/M_yellow["00"])
+            cy_yellow = int(M_yellow["01"]/M_yellow["00"])
+
+            center_x = (cx_blue + cx_yellow) // 2
+            center_y = (cx_blue + cx_yellow) // 2
+
+
+
+
+
+    # cv.imshow('before', prev)
+    # cv.imshow('after', img)
     cv.imshow('bird', transformed_frame)
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
