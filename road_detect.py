@@ -34,7 +34,10 @@ def perspective_transform(img):
     return transformed_frame
 
 def get_largest_contour(contours):
-    return cv.contourArea(contours, cv.contourArea)
+    if contours:
+        return max(contours, key=cv.contourArea)
+    else :
+      return None
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -44,7 +47,7 @@ video.set(cv.CAP_PROP_FPS, 30)
 ret, frame = video.read()
 if not ret or frame is None:
     raise RuntimeError("Failed to read frame from camera")
-newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
                                                  0, (window_width, window_height))
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
@@ -75,7 +78,7 @@ while True:
     # cv.imshow('yellow', yellow_mask)
 
     blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    yellow_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     if blue_contour and yellow_contour:
 
@@ -85,19 +88,28 @@ while True:
         M_blue = cv.moments(blue_line)
         M_yellow = cv.moments(yellow_line)
 
-        if M_blue["00"] != 0 and M_yellow["00"] != 0:
-            cx_blue = int(M_blue["10"]/M_blue["00"])
-            cy_blue = int(M_blue["01"]/M_blue["00"])
+        if M_blue['m00'] != 0 and M_yellow['m00'] != 0:
+            cx_blue = int(M_blue['m10']/M_blue['m00'])
+            cy_blue = int(M_blue['m01']/M_blue['m00'])
 
-            cx_yellow = int(M_yellow["10"]/M_yellow["00"])
-            cy_yellow = int(M_yellow["01"]/M_yellow["00"])
+            cx_yellow = int(M_yellow['m10']/M_yellow['m00'])
+            cy_yellow = int(M_yellow['m01']/M_yellow['m00'])
 
             center_x = (cx_blue + cx_yellow) // 2
-            center_y = (cx_blue + cx_yellow) // 2
+            center_y = (cy_blue + cy_yellow) // 2
 
+            frame_widthx = transformed_frame.shape[1]
+            frame_center_x = frame_widthx // 2
 
+            error = frame_center_x - center_x
+            print(error)
 
-
+            # Calculated Center
+            cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow), (255, 255, 255), 1)
+            # Frame center
+            cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]), (0, 0, 255), 2)
+            # Showcases the error
+            cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
 
     # cv.imshow('before', prev)
     # cv.imshow('after', img)
