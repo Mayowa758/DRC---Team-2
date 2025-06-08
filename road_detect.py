@@ -9,10 +9,13 @@ video = cv.VideoCapture(0)
 window_width = 640
 window_height = 480
 
+# This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
 
+
+# This function is responsible for changing the normal view to a birds-eye perspective
 def perspective_transform(img):
     # These values may need to change
     tl = (150, 300)
@@ -33,6 +36,7 @@ def perspective_transform(img):
 
     return transformed_frame
 
+# This function gets the largest contours extracted from camera view
 def get_largest_contour(contours):
     if contours:
         return max(contours, key=cv.contourArea)
@@ -44,6 +48,7 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
+# Applies camera undistortion right before we turn it on
 ret, frame = video.read()
 if not ret or frame is None:
     raise RuntimeError("Failed to read frame from camera")
@@ -52,6 +57,7 @@ newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, windo
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
 
+# The video capture of the camera
 while True:
     _, img = video.read()
     prev = img
@@ -77,14 +83,14 @@ while True:
     # cv.imshow('blue', blue_mask)
     # cv.imshow('yellow', yellow_mask)
 
+    # Gets contours of blue and yellow masks respectively
     blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     if blue_contour and yellow_contour:
-
         blue_line = get_largest_contour(blue_contour)
         yellow_line = get_largest_contour(yellow_contour)
-
+        # Uses moments to find the centers of the blue and yellow line
         M_blue = cv.moments(blue_line)
         M_yellow = cv.moments(yellow_line)
 
@@ -104,12 +110,15 @@ while True:
             error = frame_center_x - center_x
             print(error)
 
-            # Calculated Center
-            cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow), (255, 255, 255), 1)
-            # Frame center
-            cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]), (0, 0, 255), 2)
+            # Line to show the Calculated Center
+            cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
+                    (255, 255, 255), 1)
+            # Line to show the Frame center
+            cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]),
+                    (0, 0, 255), 2)
             # Showcases the error
-            cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
+            cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
+                    (0, 255, 255), 2)
 
     # cv.imshow('before', prev)
     # cv.imshow('after', img)
