@@ -1,8 +1,34 @@
 import cv2 as cv
 import numpy as np
+import time
+import pigpio
 from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
+
+MAX_STEERING_ANGLE = 30
+MIN_STEERING_ANGLE = -30
+PULSE_MIN = 1000
+PULSE_MAX = 2000
+
+# PID constants
+KP = 0.4    # proportional constant
+KI = 0.01   # integral constant
+KD = 0.2    # derivative constant
+
+# PID state
+integral = 0
+last_error = 0
+
+# Integral limit to prevent windup
+INTEGRAL_MAX = 100
+INTEGRAL_MIN = -100
+
+
+# Connecting the servo
+servo_pin = 18
+pi = pigpio.pi()
+
 
 # from colour_detect import mask_blue, mask_yellow
 video = cv.VideoCapture(0)
@@ -42,6 +68,29 @@ def get_largest_contour(contours):
         return max(contours, key=cv.contourArea)
     else :
       return None
+    
+# This function converts the PID error into a steering angle
+def convert_PID_error_to_steering_angle(error, dt):
+    global integral, last_error
+
+    integral += error * dt
+    integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
+    derivative = (error - last_error) / dt
+    last_error = error
+
+    control = KP * error + KI * integral + KD * derivative
+
+    # Clamp angle to (allowed) range
+    steering_angle = max(min(control, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
+
+    return steering_angle
+
+# This function allows the steering angle calculated to be actuated on the servo
+def set_servo_angle(angle):
+    # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
+    pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
+    pi.set_servo_pulsewidth(servo_pin, pulse_width)
+
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -56,6 +105,9 @@ newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, windo
                                                  0, (window_width, window_height))
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
+# Starting timer right before video capture
+prev_time = time.time()
 
 # The video capture of the camera
 while True:
@@ -110,6 +162,17 @@ while True:
             error = frame_center_x - center_x
             print(error)
 
+            # Converting error into steering angle using PID control
+            current_time = time.time()
+            dt = current_time - prev_time
+            prev_time = current_time
+
+            # Obtaining steering angle
+            steering_angle = convert_PID_error_to_steering_angle(error, dt)
+
+            # Servo implements steering angle
+            set_servo_angle(steering_angle)
+
             # Line to show the Calculated Center
             cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
                     (255, 255, 255), 1)
@@ -126,5 +189,7 @@ while True:
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
+pi.set_servo_pulsewidth(servo_pin, 0)
+pi.stop()
 video.release()
 cv.destroyAllWindows()
