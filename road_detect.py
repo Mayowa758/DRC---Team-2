@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import time
 import pigpio
+import Rpi.GPIO as GPIO
 from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
@@ -28,6 +29,13 @@ INTEGRAL_MIN = -100
 # Connecting the servo
 servo_pin = 18
 pi = pigpio.pi()
+
+# Connecting the DC motors
+motor_pin = 13
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(motor_pin, 1000)
+motor_pwm = GPIO.PWM(motor_pin, 1000)   # 1khZ frequency
+motor_pwm.start(0)                      # start with 0% duty cycle
 
 
 # from colour_detect import mask_blue, mask_yellow
@@ -91,6 +99,17 @@ def set_servo_angle(angle):
     pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
     pi.set_servo_pulsewidth(servo_pin, pulse_width)
 
+# This function calculates the speed of the wheels based on the steering angle
+def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4, max_angle=30):
+    angle = abs(steering_angle)
+
+    speed = max_speed - (angle / max_angle) * (max_speed - min_speed) 
+    return speed
+
+# This function allows the speed calculated to be actuated on the DC motors
+def set_motor_speed(speed):
+    duty = speed * 100
+    motor_pwm.ChangeDutyCycle(duty)
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -170,8 +189,12 @@ while True:
             # Obtaining steering angle
             steering_angle = convert_PID_error_to_steering_angle(error, dt)
 
-            # Servo implements steering angle
+            # Calculating speed from steering angle
+            speed = calculate_speed(steering_angle)
+
+            # Steering angle and speed implemented on servo motor and DC motors respectively
             set_servo_angle(steering_angle)
+            set_motor_speed(speed)
 
             # Line to show the Calculated Center
             cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
@@ -191,5 +214,7 @@ while True:
 
 pi.set_servo_pulsewidth(servo_pin, 0)
 pi.stop()
+motor_pwm.stop()
+GPIO.cleanup()
 video.release()
 cv.destroyAllWindows()
