@@ -4,6 +4,7 @@ import numpy as np
 from util import get_limits
 from configure.undistort_data import *
 
+# Creates the colour mask obtained from colour range specified
 def get_mask(img, range, kernel):
     mask = None
     for lower, upper in range:
@@ -15,7 +16,9 @@ def get_mask(img, range, kernel):
     mask = cv.dilate(mask, kernel)
     return mask
 
-# PIL
+# Below 2 different functions to draw boxes around the specified colours red, green etc.
+
+# PIL (Python Imaging Library)
 def colour_detect_test(img, mask, label, colour):
     mask_ = Image.fromarray(mask)
     colour = hsv_to_bgr(colour)
@@ -25,6 +28,7 @@ def colour_detect_test(img, mask, label, colour):
         img = cv.rectangle(img, (x, y), (w, h), colour, 5)
         cv.putText(img, label, (x, y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
 
+# BOUNDARY BOX (rectangles)
 def draw_boundary_boxes(img, mask, label, colour):
     colour = hsv_to_bgr(colour)
     for i in range(len(mask)):
@@ -37,11 +41,13 @@ def draw_boundary_boxes(img, mask, label, colour):
                     cv.rectangle(img, (x,y), (x + w, y + h), colour, 2)
                     cv.putText(img, label, (x,y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
 
+# This function combines are masks together
 def mask(blue, yellow, green, red, purple):
     # bitwise or operation
     combined  = blue | yellow | green | red | purple
     return combined
 
+# Function to convert hsv colour values to bgr
 def hsv_to_bgr(colour):
     hsv_np = np.uint8([[colour]])
     bgr_np = cv.cvtColor(hsv_np, cv.COLOR_HSV2BGR)
@@ -81,7 +87,7 @@ def run_video():
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        
+
         # BLUE and YELLOW are for road lines
         # RED and PURPLE obstacle detection draw rectangles maybe
         # GREEN is the end
