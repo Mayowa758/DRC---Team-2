@@ -80,6 +80,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
             cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
                     (0, 255, 255), 2)
             error = arrow_detection(frame, error)
+            error = obstacle_detection(frame, error)
             # obstacle detection
             # green line detection
             return error
@@ -91,6 +92,20 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
         #     error = frame_center_x - 50
         # else:
         #     error += 25
+
+# Function that can deal with the finish line
+def finish_line(transformed_frame):
+    green_range = get_limits(green)
+    green_mask = get_mask(transformed_frame, green_range, kernel)
+    green_contours, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    frame_x = transformed_frame.shape[1]
+    frame_y = transformed_frame.shape[0]
+    for contour in green_contours:
+        green_area = get_largest_contour(green_contours)
+        x, y, w, h = cv.boundingRect(green_area)
+        if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
+            print("We made it to the finish!!")
+            # Stop motor function will be put here
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -138,6 +153,7 @@ def road_detect():
         yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         # Actual Functionality
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        finish_line(transformed_frame)
 
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
