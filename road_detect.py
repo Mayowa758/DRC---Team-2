@@ -6,6 +6,7 @@ import Rpi.GPIO as GPIO
 from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
+# from gpiozero import AngularServo
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
@@ -128,6 +129,27 @@ def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
     pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
     pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+
+
+##################### Nick's code for setting the servo angle ##########################
+# # Changing this during testing period - The minimum angle required to slow down the back motors
+# MINIMUM_THRESHOLD = 18
+
+
+# # You should change the first argument to the pin where the servo is connected to in the pi.
+# # The 2nd and 3rd arguments are assuming we have a large servo motor.
+# # By default, the angle range is from -90 to 90 degrees
+
+
+# servo = AngularServo(25, min_pulse_width=0.0005, max_pulse_width=0.0025)
+
+# class MotorDrive():
+#     def map_steering_angle_to_servo(angle_from_pid):
+#         while (True):
+#             servo.angle = angle_from_pid
+#             print(f"Steering angle set to: {angle_from_pid: .2f}°")
+#             sleep(0.1)
+#########################################################################################
 
 # This function calculates the speed of the wheels based on the steering angle
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
