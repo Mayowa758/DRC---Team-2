@@ -59,6 +59,7 @@ yellow = [22, 52, 230]
 red = [0, 255, 255]
 purple = [150, 255, 128]
 green = [60, 255, 255]
+black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")
 
 def run_video():
