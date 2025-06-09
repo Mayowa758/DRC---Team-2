@@ -7,6 +7,7 @@ from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
 
+# Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
 MIN_STEERING_ANGLE = -30
 PULSE_MIN = 1000
@@ -27,15 +28,44 @@ INTEGRAL_MIN = -100
 
 
 # Connecting the servo
-servo_pin = 18
+SERVO_PIN = 18
 pi = pigpio.pi()
 
 # Connecting the DC motors
-motor_pin = 13
+# Left motor
+LEFT_IN1 = 23
+LEFT_IN2 = 24
+LEFT_EN = 18    # PWM pin
+
+# Right motor
+RIGHT_IN1 = 27
+RIGHT_IN2 = 22
+RIGHT_EN = 13   # PWM pin
+
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(motor_pin, 1000)
-motor_pwm = GPIO.PWM(motor_pin, 1000)   # 1khZ frequency
-motor_pwm.start(0)                      # start with 0% duty cycle
+
+# Setup direction pins
+GPIO.setup(LEFT_IN1, GPIO.OUT)
+GPIO.setup(LEFT_IN2, GPIO.OUT)
+GPIO.setup(RIGHT_IN1, GPIO.OUT)
+GPIO.setup(RIGHT_IN2, GPIO.OUT)
+
+# Setup PWM pins
+GPIO.setup(LEFT_EN, GPIO.OUT)
+GPIO.setup(RIGHT_EN, GPIO.OUT)
+
+# Set direction: both motors forward
+GPIO.output(LEFT_IN1, GPIO.HIGH)
+GPIO.output(LEFT_IN2, GPIO.LOW)
+
+GPIO.output(RIGHT_IN1, GPIO.HIGH)
+GPIO.output(RIGHT_IN2, GPIO.LOW)
+
+# Initialise PWM
+left_pwm = GPIO.PWM(LEFT_EN, 1000)  # 1kHz frequency
+right_pwm = GPIO.PWM(RIGHT_EN, 1000)
+left_pwm.start(0)   # Start with 0% duty cycle (stopped)
+right_pwm.start(0)
 
 
 # from colour_detect import mask_blue, mask_yellow
@@ -97,19 +127,20 @@ def convert_PID_error_to_steering_angle(error, dt):
 def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
     pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
-    pi.set_servo_pulsewidth(servo_pin, pulse_width)
+    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4, max_angle=30):
+def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     angle = abs(steering_angle)
 
-    speed = max_speed - (angle / max_angle) * (max_speed - min_speed) 
+    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
     return speed
 
 # This function allows the speed calculated to be actuated on the DC motors
 def set_motor_speed(speed):
     duty = speed * 100
-    motor_pwm.ChangeDutyCycle(duty)
+    left_pwm.ChangeDutyCycle(duty)
+    right_pwm.ChangeDutyCycle(duty)
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -124,6 +155,9 @@ newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, windo
                                                  0, (window_width, window_height))
 h, w = frame.shape[:2]
 mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
+# Setting default error value
+error = 0
 
 # Starting timer right before video capture
 prev_time = time.time()
@@ -212,9 +246,10 @@ while True:
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
-pi.set_servo_pulsewidth(servo_pin, 0)
+pi.set_servo_pulsewidth(SERVO_PIN, 0)
 pi.stop()
-motor_pwm.stop()
+left_pwm.stop()
+right_pwm.stop()
 GPIO.cleanup()
 video.release()
 cv.destroyAllWindows()
