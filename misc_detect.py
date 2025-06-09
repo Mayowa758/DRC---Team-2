@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 from colour_detect import *
-from road_detect import *
+from road_detect import get_largest_contour
 
 # Function that deals with the turning challenge
 def arrow_detection(frame, error):
