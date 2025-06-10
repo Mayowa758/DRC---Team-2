@@ -54,7 +54,7 @@ def obstacle_detection(hsv_img, error):
         return error
 
     frame_center = hsv_img.shape[1] // 2
-    if object_Mx < frame_center:
+    if object_Mx > frame_center:
         error += correction_factor
     else:
         error -= correction_factor

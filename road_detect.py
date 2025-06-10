@@ -153,6 +153,8 @@ def road_detect():
         yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         # Actual Functionality
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(hsv_img, error)
+        error = obstacle_detection(hsv_img, error)
         finish_line(transformed_frame)
 
         # cv.imshow('before', prev)
