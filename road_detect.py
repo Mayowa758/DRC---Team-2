@@ -3,51 +3,168 @@ import numpy as np
 from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
+from misc_detect import *
 
-# from colour_detect import mask_blue, mask_yellow
+
 video = cv.VideoCapture(0)
+window_width = 640
+window_height = 480
 
+# This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
 
+# This function is responsible for changing the normal view to a birds-eye perspective
+def perspective_transform(img):
+
+    # These values will need to change
+    tl = (150, 300)
+    bl = (0, 472)
+    tr = (480,  300)
+    br = (600, 472)
+
+    src_points = np.float32([tl, bl, tr, br])
+    dst_points = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
+
+    cv.circle(img, tl, 5, (0, 0, 255), -1)
+    cv.circle(img, bl, 5, (0, 0, 255), -1)
+    cv.circle(img, tr, 5, (0, 0, 255), -1)
+    cv.circle(img, br, 5, (0, 0, 255), -1)
+
+    matrix = cv.getPerspectiveTransform(src_points, dst_points)
+    transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
+
+    return transformed_frame
+
+# This function gets the largest contours extracted from camera view
+def get_largest_contour(contours):
+    if contours:
+        return max(contours, key=cv.contourArea)
+    else :
+      return None
+
+# This function is reponsible for doing the main road detection
+def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
+
+    if blue_contour and yellow_contour:
+        blue_line = get_largest_contour(blue_contour)
+        yellow_line = get_largest_contour(yellow_contour)
+
+        # Uses moments to find the centers of the blue and yellow line
+        M_blue = cv.moments(blue_line)
+        M_yellow = cv.moments(yellow_line)
+
+        if M_blue['m00'] != 0 and M_yellow['m00'] != 0:
+            cx_blue = int(M_blue['m10']/M_blue['m00'])
+            cy_blue = int(M_blue['m01']/M_blue['m00'])
+
+            cx_yellow = int(M_yellow['m10']/M_yellow['m00'])
+            cy_yellow = int(M_yellow['m01']/M_yellow['m00'])
+
+            center_x = (cx_blue + cx_yellow) // 2
+            center_y = (cy_blue + cy_yellow) // 2
+
+            frame_widthx = transformed_frame.shape[1]
+            frame_center_x = frame_widthx // 2
+            error = frame_center_x - center_x
+            print(error)
+
+            # Line to show the Calculated Center
+            cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
+                    (255, 255, 255), 1)
+            # Line to show the Frame center
+            cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]),
+                    (0, 0, 255), 2)
+            # Showcases the error
+            cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
+                    (0, 255, 255), 2)
+            error = arrow_detection(frame, error)
+            error = obstacle_detection(frame, error)
+            # obstacle detection
+            # green line detection
+            return error
+
+        # Backup code if one or no lines are detected
+        # elif yellow_contour and not blue_contour:
+        #     error = frame_center_x + 50
+        # elif blue_contour and not yellow_contour:
+        #     error = frame_center_x - 50
+        # else:
+        #     error += 25
+
+# Function that can deal with the finish line
+def finish_line(transformed_frame):
+    green_range = get_limits(green)
+    green_mask = get_mask(transformed_frame, green_range, kernel)
+    green_contours, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    frame_x = transformed_frame.shape[1]
+    frame_y = transformed_frame.shape[0]
+    for contour in green_contours:
+        green_area = get_largest_contour(green_contours)
+        x, y, w, h = cv.boundingRect(green_area)
+        if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
+            print("We made it to the finish!!")
+            # Stop motor function will be put here
+
 # Change the frame rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
-width = 640
-height = 480
+def road_detect():
+    # Applies camera undistortion right before we capture video
+    ret, frame = video.read()
+    if not ret or frame is None:
+        raise RuntimeError("Failed to read frame from camera")
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
+                                                    0, (window_width, window_height))
+    h, w = frame.shape[:2]
+    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
 
-ret, frame = video.read()
-if not ret or frame is None:
-    raise RuntimeError("Failed to read frame from camera")
+    # The video capture of the camera
+    while True:
+        _, img = video.read()
+        prev = img
+        img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
+        img = cv.GaussianBlur(img, (13, 13), 0)
+        hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
-newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (width, height), 0, (width, height))
-h, w = frame.shape[:2]
-mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+        blue_range = get_limits(blue)
+        yellow_range = get_limits(yellow)
 
+        blue_mask = get_mask(hsv_img, blue_range, kernel)
+        yellow_mask = get_mask(hsv_img, yellow_range, kernel)
+        drive_mask = road_mask(blue_mask, yellow_mask)
 
-while True:
-    __, img = video.read()
-    prev = img
-    img = cv.GaussianBlur(img, (13, 13), 0)
-    img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
-    hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-    kernel = np.ones((5,5), "uint8")
+        # Bird's eye transformation
+        transformed_frame = perspective_transform(img)
+        hsv_img_bv = cv.cvtColor(transformed_frame, cv.COLOR_BGR2HSV)
+        blue_mask_bv = get_mask(hsv_img_bv, blue_range, kernel)
+        yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
+        drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    blue_range = get_limits(blue)
-    yellow_range = get_limits(yellow)
-    blue_mask = get_mask(hsv_img, blue_range, kernel)
-    yellow_mask = get_mask(hsv_img, yellow_range, kernel)
-    drive_mask = road_mask(blue_mask, yellow_mask)
+        cv.imshow('drive_mask_bv', drive_mask_bv)
+        # cv.imshow('blue', blue_mask)
+        # cv.imshow('yellow', yellow_mask)
 
-    cv.imshow('drive_mask', drive_mask)
-    cv.imshow('before', prev)
-    cv.imshow('after', img)
+        # Gets contours of blue and yellow masks respectively
+        blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        # Actual Functionality
+        error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(hsv_img, error)
+        error = obstacle_detection(hsv_img, error)
+        finish_line(transformed_frame)
 
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        break
+        # cv.imshow('before', prev)
+        # cv.imshow('after', img)
+        cv.imshow('bird', transformed_frame)
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
 
-video.release()
-cv.destroyAllWindows()
+    video.release()
+    cv.destroyAllWindows()
+
+if __name__ == "__main__":
+    road_detect()
