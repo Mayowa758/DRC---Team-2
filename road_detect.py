@@ -97,11 +97,11 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 def finish_line(transformed_frame):
     green_range = get_limits(green)
     green_mask = get_mask(transformed_frame, green_range, kernel)
-    green_contours, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    green_contour, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     frame_x = transformed_frame.shape[1]
     frame_y = transformed_frame.shape[0]
-    for contour in green_contours:
-        green_area = get_largest_contour(green_contours)
+    if green_contour:
+        green_area = get_largest_contour(green_contour)
         x, y, w, h = cv.boundingRect(green_area)
         if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
             print("We made it to the finish!!")
@@ -155,8 +155,10 @@ def road_detect():
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(hsv_img, error)
         error = obstacle_detection(hsv_img, error)
+        # PID STUFF
+        #ending
         finish_line(transformed_frame)
-
+        # wait for 1
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
         cv.imshow('bird', transformed_frame)
