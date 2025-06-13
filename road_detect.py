@@ -3,10 +3,11 @@ import numpy as np
 import time
 import pigpio
 import Rpi.GPIO as GPIO
+# from gpiozero import AngularServo
 from util import get_limits
 from configure.undistort_data import *
 from colour_detect import *
-# from gpiozero import AngularServo
+from misc_detect import *
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
@@ -15,6 +16,7 @@ PULSE_MIN = 1000
 PULSE_MAX = 2000
 
 # PID constants
+# These values will need to be adjusted
 KP = 0.4    # proportional constant
 KI = 0.01   # integral constant
 KD = 0.2    # derivative constant
@@ -26,7 +28,6 @@ last_error = 0
 # Integral limit to prevent windup
 INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
-
 
 # Connecting the servo
 SERVO_PIN = 18
@@ -69,7 +70,6 @@ left_pwm.start(0)   # Start with 0% duty cycle (stopped)
 right_pwm.start(0)
 
 
-# from colour_detect import mask_blue, mask_yellow
 video = cv.VideoCapture(0)
 window_width = 640
 window_height = 480
@@ -79,10 +79,10 @@ def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
 
-
 # This function is responsible for changing the normal view to a birds-eye perspective
 def perspective_transform(img):
-    # These values may need to change
+
+    # These values will need to change
     tl = (150, 300)
     bl = (0, 472)
     tr = (480,  300)
@@ -107,7 +107,7 @@ def get_largest_contour(contours):
         return max(contours, key=cv.contourArea)
     else :
       return None
-    
+
 # This function converts the PID error into a steering angle
 def convert_PID_error_to_steering_angle(error, dt):
     global integral, last_error
@@ -164,59 +164,13 @@ def set_motor_speed(speed):
     left_pwm.ChangeDutyCycle(duty)
     right_pwm.ChangeDutyCycle(duty)
 
-# Change the frame rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
-video.set(cv.CAP_PROP_FPS, 30)
-
-# Applies camera undistortion right before we turn it on
-ret, frame = video.read()
-if not ret or frame is None:
-    raise RuntimeError("Failed to read frame from camera")
-newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
-                                                 0, (window_width, window_height))
-h, w = frame.shape[:2]
-mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
-
-# Setting default error value
-error = 0
-
-# Starting timer right before video capture
-prev_time = time.time()
-
-# The video capture of the camera
-while True:
-    _, img = video.read()
-    prev = img
-    img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
-    img = cv.GaussianBlur(img, (13, 13), 0)
-    hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-
-    blue_range = get_limits(blue)
-    yellow_range = get_limits(yellow)
-
-    blue_mask = get_mask(hsv_img, blue_range, kernel)
-    yellow_mask = get_mask(hsv_img, yellow_range, kernel)
-    drive_mask = road_mask(blue_mask, yellow_mask)
-
-    # Bird's eye transformation
-    transformed_frame = perspective_transform(img)
-    hsv_img_bv = cv.cvtColor(transformed_frame, cv.COLOR_BGR2HSV)
-    blue_mask_bv = get_mask(hsv_img_bv, blue_range, kernel)
-    yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
-    drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
-
-    cv.imshow('drive_mask_bv', drive_mask_bv)
-    # cv.imshow('blue', blue_mask)
-    # cv.imshow('yellow', yellow_mask)
-
-    # Gets contours of blue and yellow masks respectively
-    blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+# This function is reponsible for doing the main road detection
+def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
     if blue_contour and yellow_contour:
         blue_line = get_largest_contour(blue_contour)
         yellow_line = get_largest_contour(yellow_contour)
+
         # Uses moments to find the centers of the blue and yellow line
         M_blue = cv.moments(blue_line)
         M_yellow = cv.moments(yellow_line)
@@ -233,7 +187,6 @@ while True:
 
             frame_widthx = transformed_frame.shape[1]
             frame_center_x = frame_widthx // 2
-
             error = frame_center_x - center_x
             print(error)
 
@@ -261,17 +214,102 @@ while True:
             # Showcases the error
             cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
                     (0, 255, 255), 2)
+            error = arrow_detection(frame, error)
+            error = obstacle_detection(frame, error)
+            # obstacle detection
+            # green line detection
+            return error
 
-    # cv.imshow('before', prev)
-    # cv.imshow('after', img)
-    cv.imshow('bird', transformed_frame)
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        break
+        # Backup code if one or no lines are detected
+        # elif yellow_contour and not blue_contour:
+        #     error = frame_center_x + 50
+        # elif blue_contour and not yellow_contour:
+        #     error = frame_center_x - 50
+        # else:
+        #     error += 25
 
-pi.set_servo_pulsewidth(SERVO_PIN, 0)
-pi.stop()
-left_pwm.stop()
-right_pwm.stop()
-GPIO.cleanup()
-video.release()
-cv.destroyAllWindows()
+# Function that can deal with the finish line
+def finish_line(transformed_frame):
+    green_range = get_limits(green)
+    green_mask = get_mask(transformed_frame, green_range, kernel)
+    green_contours, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    frame_x = transformed_frame.shape[1]
+    frame_y = transformed_frame.shape[0]
+    for contour in green_contours:
+        green_area = get_largest_contour(green_contours)
+        x, y, w, h = cv.boundingRect(green_area)
+        if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
+            print("We made it to the finish!!")
+            # Stop motor function will be put here
+
+# Change the frame rate of the camera
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
+video.set(cv.CAP_PROP_FPS, 30)
+
+# Setting default error value
+error = 0
+
+# Starting timer right before video capture
+prev_time = time.time()
+
+def road_detect():
+    # Applies camera undistortion right before we capture video
+    ret, frame = video.read()
+    if not ret or frame is None:
+        raise RuntimeError("Failed to read frame from camera")
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
+                                                    0, (window_width, window_height))
+    h, w = frame.shape[:2]
+    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
+    # The video capture of the camera
+    while True:
+        _, img = video.read()
+        prev = img
+        img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
+        img = cv.GaussianBlur(img, (13, 13), 0)
+        hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+
+        blue_range = get_limits(blue)
+        yellow_range = get_limits(yellow)
+
+        blue_mask = get_mask(hsv_img, blue_range, kernel)
+        yellow_mask = get_mask(hsv_img, yellow_range, kernel)
+        drive_mask = road_mask(blue_mask, yellow_mask)
+
+        # Bird's eye transformation
+        transformed_frame = perspective_transform(img)
+        hsv_img_bv = cv.cvtColor(transformed_frame, cv.COLOR_BGR2HSV)
+        blue_mask_bv = get_mask(hsv_img_bv, blue_range, kernel)
+        yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
+        drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
+
+        cv.imshow('drive_mask_bv', drive_mask_bv)
+        # cv.imshow('blue', blue_mask)
+        # cv.imshow('yellow', yellow_mask)
+
+        # Gets contours of blue and yellow masks respectively
+        blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        # Actual Functionality
+        error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(hsv_img, error)
+        error = obstacle_detection(hsv_img, error)
+        finish_line(transformed_frame)
+
+        # cv.imshow('before', prev)
+        # cv.imshow('after', img)
+        cv.imshow('bird', transformed_frame)
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+    pi.set_servo_pulsewidth(SERVO_PIN, 0)
+    pi.stop()
+    left_pwm.stop()
+    right_pwm.stop()
+    GPIO.cleanup()
+    video.release()
+    cv.destroyAllWindows()
+
+if __name__ == "__main__":
+    road_detect()
