@@ -11,7 +11,9 @@ def get_limits(hsv_colour, error=10) :
     s_upper = 255
     v_lower = 100
     v_upper = 255
-
+    if h == 0:
+        lowerLimit = 0, 0, 0
+        upperLimit = 0, 0, 0
     if h < 10:
         lowerLimit1 = 0, s_lower, v_lower
         upperLimit1 = h + 10, s_upper, v_upper
@@ -22,9 +24,9 @@ def get_limits(hsv_colour, error=10) :
         upper1 = np.array(upperLimit1, dtype=np.uint8)
         lower2 = np.array(lowerLimit2, dtype=np.uint8)
         upper2 = np.array(upperLimit2, dtype=np.uint8)
-        
+
         return [(lower1, upper1), (lower2, upper2)]
-    
+
     if (h > 169):
         lowerLimit1 = h - 10, s_lower, v_lower
         upperLimit1 = 179, s_upper, v_upper
