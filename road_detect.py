@@ -303,11 +303,13 @@ def road_detect():
         cv.imshow('bird', transformed_frame)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
+
     pi.set_servo_pulsewidth(SERVO_PIN, 0)
     pi.stop()
     left_pwm.stop()
     right_pwm.stop()
     GPIO.cleanup()
+    
     video.release()
     cv.destroyAllWindows()
 
