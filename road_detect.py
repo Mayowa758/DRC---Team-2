@@ -46,7 +46,7 @@ def get_largest_contour(contours):
 
 # This function is reponsible for doing the main road detection
 def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
-
+    error = 0
     if blue_contour and yellow_contour:
         blue_line = get_largest_contour(blue_contour)
         yellow_line = get_largest_contour(yellow_contour)
@@ -68,7 +68,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
             frame_widthx = transformed_frame.shape[1]
             frame_center_x = frame_widthx // 2
             error = frame_center_x - center_x
-            print(error)
+            # print(error)
 
             # Line to show the Calculated Center
             cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
@@ -80,7 +80,8 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
             cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
                     (0, 255, 255), 2)
             return error
-
+    else:
+        return error
         # Backup code if one or no lines are detected
         # elif yellow_contour and not blue_contour:
         #     error = frame_center_x + 50
@@ -160,7 +161,14 @@ def road_detect():
         # Actual Functionality
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(hsv_img, error)
-        error = obstacle_detection(hsv_img, error)
+        error = obstacle_detection(hsv_img, error, img)
+        black_range = get_limits(black)
+        arrow_mask = get_mask(frame, black_range, kernel)
+        cv.imshow('Arrow Mask', arrow_mask)
+        # cv.imshow('Obstacle?', img)
+        # purple_range = get_limits(purple)
+        # purple_mask = get_mask(hsv_img, purple_range, kernel)
+        # cv.imshow('Purple', purple_mask)
         # PID STUFF
         #ending
         finish_line(transformed_frame)
