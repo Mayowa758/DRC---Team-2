@@ -160,10 +160,10 @@ def road_detect():
 
         # Actual Functionality
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        error = arrow_detection(hsv_img, error)
+        # error = arrow_detection(hsv_img, error)
         error = obstacle_detection(hsv_img, error, img)
         black_range = get_limits(black)
-        arrow_mask = get_mask(frame, black_range, kernel)
+        arrow_mask = get_mask(hsv_img, black_range, kernel)
         cv.imshow('Arrow Mask', arrow_mask)
         # cv.imshow('Obstacle?', img)
         # purple_range = get_limits(purple)
