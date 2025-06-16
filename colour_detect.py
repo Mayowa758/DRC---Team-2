@@ -41,7 +41,7 @@ def draw_boundary_boxes(img, mask, label, colour):
                     cv.rectangle(img, (x,y), (x + w, y + h), colour, 2)
                     cv.putText(img, label, (x,y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
 
-# This function combines are masks together
+# This function combines all the different masks together
 def mask(blue, yellow, green, red, purple):
     # bitwise or operation
     combined  = blue | yellow | green | red | purple

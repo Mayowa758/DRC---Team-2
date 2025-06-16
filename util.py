@@ -1,9 +1,11 @@
 import numpy as np
 import cv2 as cv
 
-# The function also deals with if red as that colour 'wraps' around the wheel
+# The function gets the colour ranges for inputed colours
+# The function also deals with the colour such as red that 'wrap' around the HSV colour wheel
 def get_limits(hsv_colour, error=10) :
 
+    # Setting initial parameters for hsv
     h = hsv_colour[0]
     s = hsv_colour[1]
     v = hsv_colour[2]
@@ -11,12 +13,18 @@ def get_limits(hsv_colour, error=10) :
     s_upper = 255
     v_lower = 100
     v_upper = 255
+
+    # The case for which the colour is black
     if h == 0:
         lowerLimit = 0, 0, 0
         upperLimit = 180, 255, 80
+
         lower = np.array(lowerLimit, dtype=np.uint8)
         upper = np.array(upperLimit, dtype=np.uint8)
+
         return [(lower, upper)]
+
+    # The case for which the colour is red/orange
     if h < 10:
         lowerLimit1 = 0, s_lower, v_lower
         upperLimit1 = h + 10, s_upper, v_upper
@@ -30,6 +38,7 @@ def get_limits(hsv_colour, error=10) :
 
         return [(lower1, upper1), (lower2, upper2)]
 
+    # The case for which the colour is pink/purple
     if (h > 169):
         lowerLimit1 = h - 10, s_lower, v_lower
         upperLimit1 = 179, s_upper, v_upper
@@ -42,8 +51,9 @@ def get_limits(hsv_colour, error=10) :
         upper2 = np.array(upperLimit2, dtype=np.uint8)
 
         return [(lower1, upper1), (lower2, upper2)]
-    else:
 
+    # Handles every other colour in HSL colour wheel
+    else:
         lowerLimit = max(h - error, 0), s_lower, v_lower
         upperLimit = min(h + error, 179), s_upper, v_upper
 

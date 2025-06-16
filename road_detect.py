@@ -7,6 +7,7 @@ from misc_detect import *
 from ackermann import *
 import time
 
+# Initialise the video reading device and the resolution of vidoe
 video = cv.VideoCapture(0)
 window_width = 640
 window_height = 480
@@ -16,7 +17,7 @@ def road_mask(blue, yellow):
     new_mask = blue | yellow
     return new_mask
 
-# This function is responsible for changing the normal view to a birds-eye perspective
+# This function is responsible for changing the normal view of camera to a birds-eye perspective
 def perspective_transform(img):
 
     # These values will need to change
@@ -45,7 +46,7 @@ def get_largest_contour(contours):
     else :
       return None
 
-# This function is reponsible for doing the main road detection
+# This function is responsible for the maths behind the road detection getting centers, moments etc.
 def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     error = 0
     if blue_contour and yellow_contour:
@@ -91,7 +92,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
         # else:
         #     error += 25
 
-# Function that can deal with the finish line
+# Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame):
     green_range = get_limits(green)
     green_mask = get_mask(transformed_frame, green_range, kernel)
@@ -110,41 +111,14 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
-def road_setup(hsv_img, transformed_frame):
-
-    # Get colour range
-    blue_range = get_limits(blue)
-    yellow_range = get_limits(yellow)
-
-    # Create corresponding masks
-    blue_mask = get_mask(hsv_img, blue_range, kernel)
-    yellow_mask = get_mask(hsv_img, yellow_range, kernel)
-    drive_mask = road_mask(blue_mask, yellow_mask)
-
-    # Bird's eye transformation
-    hsv_img_bv = cv.cvtColor(transformed_frame, cv.COLOR_BGR2HSV)
-    blue_mask_bv = get_mask(hsv_img_bv, blue_range, kernel)
-    yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
-    drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
-
-    cv.imshow('drive_mask_bv', drive_mask_bv)
-    # cv.imshow('blue', blue_mask)
-    # cv.imshow('yellow', yellow_mask)
-
-    # Gets contours of blue and yellow masks respectively
-    blue_contour, _ = cv.findContours(blue_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    return (blue_contour, yellow_contour)
-
-# MAIN RUNNING FUNCTION
 # Setting default initial error value
 error = 0
 
 # Starting timer right before video capture
 prev_time = time.time()
 
+# Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
-
     # Get colour range
     blue_range = get_limits(blue)
     yellow_range = get_limits(yellow)
@@ -183,7 +157,7 @@ def road_detect():
     # The video capture of the camera
     while True:
 
-        # Setup of Road Detection
+        # Setup for road detection
         _, img = video.read()
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
@@ -191,7 +165,8 @@ def road_detect():
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
         transformed_frame = perspective_transform(img)
         (blue_contour, yellow_contour) = road_setup(hsv_img, transformed_frame)
-        # Actual Functionality
+
+        # Obtain error for PID detection
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(hsv_img, error)
         error = obstacle_detection(hsv_img, error)

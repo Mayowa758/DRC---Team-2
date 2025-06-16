@@ -1,5 +1,5 @@
 import pigpio
-import Rpi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import numpy as np
 # from gpiozero import AngularServo
 
