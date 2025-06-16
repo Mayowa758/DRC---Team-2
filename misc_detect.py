@@ -1,14 +1,13 @@
 import cv2 as cv
-import numpy as np
 from colour_detect import *
 from road_detect import get_largest_contour
 
-# Function that deals with the turning challenge
+# Function that detects a black arrow on the ground and turns in the following direction
 def arrow_detection(frame, error):
     # Some value for correcting PID
     correction_factor = 100;
 
-    # find contours of black arrow
+    # Find contours of black arrow
     black_range = get_limits(black)
     arrow_mask = get_mask(frame, black_range, kernel)
     arrow_contours, _ = cv.findContours(arrow_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -17,7 +16,7 @@ def arrow_detection(frame, error):
     arrow_area = get_largest_contour(arrow_contours)
     arrow_M = cv.moments(arrow_area)
 
-    # calculate the centroid of the black arrow
+    # Calculate the centroid of the black arrow
     arrow_Mx = int(arrow_M['m10']/arrow_M['m00'])
     if arrow_M['m00'] == 0:
         return error
@@ -25,7 +24,7 @@ def arrow_detection(frame, error):
     # center of the camera frame
     frame_center = frame.shape[1] // 2
 
-    # Perform the correction
+    # Perform the error correction
     if arrow_Mx > frame_center:
         error -= correction_factor
         print("left")
@@ -34,7 +33,7 @@ def arrow_detection(frame, error):
         print("right");
     return error
 
-# Function that deals with obstacles
+# Function that detects purple obstacles and increases or decreases the PID error accordingly
 def obstacle_detection(hsv_img, error, img):
     # Some value for correcting the PID
     correction_factor = 25
@@ -52,10 +51,10 @@ def obstacle_detection(hsv_img, error, img):
     if object_M['m00'] == 0:
         return error
 
-    # Center of the camera frame
+    # Get center of the camera frame
     frame_center = hsv_img.shape[1] // 2
 
-    # Perform the correction
+    # Perform the error correction
     if object_Mx > frame_center:
         error -= correction_factor
         print("left")
