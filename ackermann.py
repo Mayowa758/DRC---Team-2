@@ -129,17 +129,17 @@ def stop_servo():
     servo_pwm.ChangeDutyCycle(0)
     
 # This function turns the servo motor off
-def close_servo():
+def turn_off_servo():
     servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
     servo_pwm.stop()
 
 # This function stops the motor but doesn't turn it off
-def stop_motor():
+def stop_motors():
     left_pwm.ChangeDutyCycle(0)
     right_pwm.ChangeDutyCycle(0)
 
 # This function turns the motor off
-def close_motor():
+def turn_off_motors():
     left_pwm.stop()
     right_pwm.stop()
 
