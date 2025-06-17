@@ -22,6 +22,9 @@ last_error = 0
 INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
+# Enable pin
+ENABLE_PIN = 17
+
 # Connecting the servo
 SERVO_PIN = 18
 pi = pigpio.pi()
@@ -40,10 +43,12 @@ RIGHT_EN = 13   # PWM pin
 GPIO.setmode(GPIO.BCM)
 
 # Setup direction pins
+GPIO.setup(ENABLE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(LEFT_IN1, GPIO.OUT)
 GPIO.setup(LEFT_IN2, GPIO.OUT)
 GPIO.setup(RIGHT_IN1, GPIO.OUT)
 GPIO.setup(RIGHT_IN2, GPIO.OUT)
+
 
 # Setup PWM pins
 GPIO.setup(LEFT_EN, GPIO.OUT)
