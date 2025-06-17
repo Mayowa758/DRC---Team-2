@@ -106,7 +106,8 @@ def finish_line(transformed_frame):
         x, y, w, h = cv.boundingRect(green_area)
         if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            stop_motor()
+            stop_motors()
+            stop_servo()
             return True
     return False
 
@@ -138,13 +139,15 @@ def road_detect():
         _, img = video.read()
         
         if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
-            stop_motor()    # this is for safety (to make sure the car is stopped)
+            stop_motors()    # this is for safety (to make sure the car is stopped)
+            stop_servo()
             print("Movement disabled. Waiting for enable switch...")
             time.sleep(0.5)
             continue
 
         if finished:
-            stop_motor()
+            stop_motors()
+            stop_servo()
             print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
             while True:
                 key = cv.waitKey(1) & 0xFF
@@ -154,8 +157,8 @@ def road_detect():
                     break
                 elif key == ord('q')
                 print("Exiting program...")
-                close_servo()
-                close_motor()
+                turn_off_servo()
+                turn_off_motors()
                 cleanup_GPIO()
                 video.release()
                 cv.destroyAllWindows()
@@ -217,8 +220,8 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    close_servo()
-    close_motor()
+    turn_off_servo()
+    turn_off_motors()
     cleanup_GPIO()
     
     video.release()
