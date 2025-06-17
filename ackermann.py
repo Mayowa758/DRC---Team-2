@@ -27,7 +27,7 @@ ENABLE_PIN = 17
 
 # Connecting the servo
 SERVO_PIN = 18
-pi = pigpio.pi()
+servo_pwm = pigpio.pi()
 
 # Connecting the DC motors
 # Left motor
@@ -124,10 +124,14 @@ def set_motor_speed(speed):
     left_pwm.ChangeDutyCycle(duty)
     right_pwm.ChangeDutyCycle(duty)
 
+# This function stops the servo but doesn't turn it off
+def stop_servo():
+    servo_pwm.ChangeDutyCycle(0)
+    
 # This function turns the servo motor off
 def close_servo():
-    pi.set_servo_pulsewidth(SERVO_PIN, 0)
-    pi.stop()
+    servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
+    servo_pwm.stop()
 
 # This function stops the motor but doesn't turn it off
 def stop_motor():
