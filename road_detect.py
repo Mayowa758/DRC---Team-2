@@ -107,6 +107,8 @@ def finish_line(transformed_frame):
         if green_area > 200 and h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
             print("We made it to the finish!!")
             stop_motor()
+            return True
+    return False
 
 # Change the frame rate of the camera
 video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
@@ -120,6 +122,8 @@ error = 0
 prev_time = time.time()
 
 def road_detect():
+    finished = False
+    
     # Applies camera undistortion right before we capture video
     ret, frame = video.read()
     if not ret or frame is None:
@@ -131,13 +135,33 @@ def road_detect():
 
     # The video capture of the camera
     while True:
+        _, img = video.read()
+        
         if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
             stop_motor()    # this is for safety (to make sure the car is stopped)
             print("Movement disabled. Waiting for enable switch...")
             time.sleep(0.5)
             continue
+
+        if finished:
+            stop_motor()
+            print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
+            while True:
+                key = cv.waitKey(1) & 0xFF
+                if key == ord('r'):
+                    print("Resetting car...")
+                    finished = False
+                    break
+                elif key == ord('q')
+                print("Exiting program...")
+                close_servo()
+                close_motor()
+                cleanup_GPIO()
+                video.release()
+                cv.destroyAllWindows()
+                return
+            continue
             
-        _, img = video.read()
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
@@ -183,7 +207,9 @@ def road_detect():
         set_servo_angle(steering_angle)
         set_motor_speed(speed)
 
-        finish_line(transformed_frame)
+        if finish_line(transformed_frame):
+            finished = True
+            continue
 
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
