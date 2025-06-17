@@ -131,6 +131,12 @@ def road_detect():
 
     # The video capture of the camera
     while True:
+        if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
+            stop_motor()    # this is for safety (to make sure the car is stopped)
+            print("Movement disabled. Waiting for enable switch...")
+            time.sleep(0.5)
+            continue
+            
         _, img = video.read()
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
