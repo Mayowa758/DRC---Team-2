@@ -1,6 +1,12 @@
 import pigpio
 import Rpi.GPIO as GPIO
+import numpy as np
+import math
 # from gpiozero import AngularServo
+
+# Pure pursuit constants
+LOOKAHEAD_DISTANCE = 30
+SCALING_FACTOR = 0.5
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
@@ -69,7 +75,7 @@ right_pwm.start(0)
 
 
 # This function converts the PID error into a steering angle
-def convert_PID_error_to_steering_angle(error, dt):
+def compute_PID_error(error, dt):
     global integral, last_error
 
     integral += error * dt
@@ -78,10 +84,25 @@ def convert_PID_error_to_steering_angle(error, dt):
     last_error = error
 
     control = KP * error + KI * integral + KD * derivative
+    
+    return control
 
+# This function computes the steering angle from the adjusted error/control value
+def compute_steering_angle(control):
+    # Avoiding small unnecessary conections (which will jitter the servo)
+    if abs(control) < 5:
+        return 0
+        
+    # Compute geometric angle 
+    desired_angle_rad = math.atan2(control, LOOKAHEAD_Y)
+    desired_angle_deg = math.degrees(desired_angle_rad)
+
+    # Smooth the response using tanh for stability
+    steering_angle = MAX_STEERING_ANGLE * np.tanh(desired_angle_deg / SCALING_FACTOR)
+    
     # Clamp angle to (allowed) range
-    steering_angle = max(min(control, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
-
+    steering_angle = max(min(steering_angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
+    
     return steering_angle
 
 # This function allows the steering angle calculated to be actuated on the servo
