@@ -93,7 +93,7 @@ def compute_steering_angle(control):
     if abs(control) < 5:
         return 0
         
-    # Compute geometric angle 
+    # Compute geometric angle using Pure Pursuit
     desired_angle_rad = math.atan2(control, LOOKAHEAD_Y)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
