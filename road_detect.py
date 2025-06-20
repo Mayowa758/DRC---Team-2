@@ -1,16 +1,27 @@
 import cv2 as cv
 import numpy as np
-from util import get_limits
+from util import *
 from configure.undistort_data import *
 from colour_detect import *
 from misc_detect import *
-from ackermann import *
-import time
+# from ackermann import *
+# import time
 
 # Initialise the video reading device and the resolution of vidoe
 video = cv.VideoCapture(0)
 window_width = 640
 window_height = 480
+
+# Change the frame resolution and rate of the camera
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
+video.set(cv.CAP_PROP_FPS, 30)
+
+# Setting default initial error value
+error = 0
+
+# Getting the created arrow templates
+left_arrow_templates, right_arrow_templates = load_templates()
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
@@ -104,18 +115,10 @@ def finish_line(transformed_frame):
         x, y, w, h = cv.boundingRect(green_area)
         if h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            stop_motor()
-
-# Change the frame rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
-video.set(cv.CAP_PROP_FPS, 30)
-
-# Setting default initial error value
-error = 0
+            # stop_motor()
 
 # Starting timer right before video capture
-prev_time = time.time()
+# prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -156,7 +159,7 @@ def road_detect():
 
     # The video capture of the camera
     while True:
-
+        global error
         # Setup for road detection
         _, img = video.read()
         prev = img
@@ -168,31 +171,31 @@ def road_detect():
 
         # Obtain error for PID detection
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        error = arrow_detection(hsv_img, error)
-        error = obstacle_detection(hsv_img, error)
+        error = arrow_detection(transformed_frame, error)
+        # error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
-        current_time = time.time()
-        dt = current_time - prev_time
-        prev_time = current_time
+        # current_time = time.time()
+        # dt = current_time - prev_time
+        # prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        steering_angle = convert_PID_error_to_steering_angle(error, dt)
-        speed = calculate_speed(steering_angle)
+        # steering_angle = convert_PID_error_to_steering_angle(error, dt)
+        # speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
-        set_servo_angle(steering_angle)
-        set_motor_speed(speed)
-        finish_line(transformed_frame)
+        # set_servo_angle(steering_angle)
+        # set_motor_speed(speed)
+        # finish_line(transformed_frame)
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
         cv.imshow('bird', transformed_frame)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    close_servo()
-    close_motor()
-    cleanup_GPIO()
+    # close_servo()
+    # close_motor()
+    # cleanup_GPIO()
     video.release()
     cv.destroyAllWindows()
 
