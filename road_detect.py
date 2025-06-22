@@ -1,16 +1,27 @@
 import cv2 as cv
 import numpy as np
-from util import get_limits
+from util import *
 from configure.undistort_data import *
 from colour_detect import *
 from misc_detect import *
 from ackermann import *
 import time
 
-# Initialise the video reading device and the resolution of vidoe
+# Initialise the video reading device and the resolution of video
 video = cv.VideoCapture(0)
 window_width = 640
 window_height = 480
+
+# Change the frame resolution and rate of the camera
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
+video.set(cv.CAP_PROP_FPS, 30)
+
+# Setting default initial error value
+error = 0
+
+# Getting the created arrow templates
+left_arrow_templates, right_arrow_templates = load_templates()
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
@@ -106,14 +117,6 @@ def finish_line(transformed_frame):
             print("We made it to the finish!!")
             stop_motor()
 
-# Change the frame rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
-video.set(cv.CAP_PROP_FPS, 30)
-
-# Setting default initial error value
-error = 0
-
 # Starting timer right before video capture
 prev_time = time.time()
 
@@ -156,7 +159,7 @@ def road_detect():
 
     # The video capture of the camera
     while True:
-
+        global error
         # Setup for road detection
         _, img = video.read()
         prev = img
@@ -168,7 +171,7 @@ def road_detect():
 
         # Obtain error for PID detection
         error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        error = arrow_detection(hsv_img, error)
+        error = arrow_detection(transformed_frame, error)
         error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control

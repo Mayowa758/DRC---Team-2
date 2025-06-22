@@ -24,42 +24,31 @@ INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
 # Connecting the servo
-SERVO_PIN = 18
+SERVO_PIN = 35
 pi = pigpio.pi()
 
 # Connecting the DC motors
 # Left motor
-LEFT_IN1 = 23
-LEFT_IN2 = 24
-LEFT_EN = 18    # PWM pin
+LEFT_DIR = 23
+LEFT_PWM = 18    # PWM pin
 
 # Right motor
-RIGHT_IN1 = 27
-RIGHT_IN2 = 22
-RIGHT_EN = 13   # PWM pin
+RIGHT_DIR = 27
+RIGHT_PWM = 13   # PWM pin
 
 GPIO.setmode(GPIO.BCM)
 
 # Setup direction pins
-GPIO.setup(LEFT_IN1, GPIO.OUT)
-GPIO.setup(LEFT_IN2, GPIO.OUT)
-GPIO.setup(RIGHT_IN1, GPIO.OUT)
-GPIO.setup(RIGHT_IN2, GPIO.OUT)
+GPIO.setup(LEFT_DIR, GPIO.OUT)
+GPIO.setup(RIGHT_DIR, GPIO.OUT)
 
 # Setup PWM pins
-GPIO.setup(LEFT_EN, GPIO.OUT)
-GPIO.setup(RIGHT_EN, GPIO.OUT)
-
-# Set direction: both motors forward
-GPIO.output(LEFT_IN1, GPIO.HIGH)
-GPIO.output(LEFT_IN2, GPIO.LOW)
-
-GPIO.output(RIGHT_IN1, GPIO.HIGH)
-GPIO.output(RIGHT_IN2, GPIO.LOW)
+GPIO.setup(LEFT_PWM, GPIO.OUT)
+GPIO.setup(RIGHT_PWM, GPIO.OUT)
 
 # Initialise PWM
-left_pwm = GPIO.PWM(LEFT_EN, 1000)  # 1kHz frequency
-right_pwm = GPIO.PWM(RIGHT_EN, 1000)
+left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
+right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
 left_pwm.start(0)   # Start with 0% duty cycle (stopped)
 right_pwm.start(0)
 
@@ -111,7 +100,7 @@ def set_servo_angle(angle):
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     angle = abs(steering_angle)
 
-    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
+    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed)
     return speed
 
 # This function allows the speed calculated to be actuated on the DC motors
