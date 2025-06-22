@@ -4,6 +4,9 @@ import numpy as np
 from util import get_limits
 from configure.undistort_data import *
 
+window_width = 640
+window_height = 480
+
 # Creates the colour mask obtained from colour range specified
 def get_mask(img, range, kernel):
     mask = None
@@ -79,9 +82,10 @@ def run_video():
     ret, frame = video.read()
     if not ret or frame is None:
         raise RuntimeError("Failed to read frame from camera")
-
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
     h, w = frame.shape[:2]
     mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
 
     while True:
         _, img = video.read()
