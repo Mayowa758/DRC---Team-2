@@ -17,8 +17,8 @@ def get_limits(hsv_colour, error=10) :
 
     # The case for which the colour is black
     if h == 0:
-        lowerLimit = 0, 0, 0
-        upperLimit = 180, 255, 80
+        lowerLimit = 92, 19, 0
+        upperLimit = 132, 94, 86
 
         lower = np.array(lowerLimit, dtype=np.uint8)
         upper = np.array(upperLimit, dtype=np.uint8)

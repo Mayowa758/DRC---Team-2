@@ -43,19 +43,12 @@ GPIO.setup(LEFT_DIR, GPIO.OUT)
 GPIO.setup(RIGHT_DIR, GPIO.OUT)
 
 # Setup PWM pins
-GPIO.setup(LEFT_EN, GPIO.OUT)
-GPIO.setup(RIGHT_EN, GPIO.OUT)
-
-# Set direction: both motors forward
-GPIO.output(LEFT_IN1, GPIO.HIGH)
-GPIO.output(LEFT_IN2, GPIO.LOW)
-
-GPIO.output(RIGHT_IN1, GPIO.HIGH)
-GPIO.output(RIGHT_IN2, GPIO.LOW)
+GPIO.setup(LEFT_PWM, GPIO.OUT)
+GPIO.setup(RIGHT_PWM, GPIO.OUT)
 
 # Initialise PWM
-left_pwm = GPIO.PWM(LEFT_EN, 1000)  # 1kHz frequency
-right_pwm = GPIO.PWM(RIGHT_EN, 1000)
+left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
+right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
 left_pwm.start(0)   # Start with 0% duty cycle (stopped)
 right_pwm.start(0)
 
