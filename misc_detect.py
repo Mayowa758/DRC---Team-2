@@ -1,10 +1,44 @@
 import cv2 as cv
 from colour_detect import *
-from road_detect import get_largest_contour
+from road_detect import *
+from util import *
 
 # Function that detects a black arrow on the ground and turns in the following direction
 def arrow_detection(frame, error):
     # Some value for correcting PID
+    # correction_factor = 100
+    # gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # gray_frame = gray_frame[int(gray_frame.shape[0] * 0.6):, :] # Crops the frame
+    # best_left_score = 0
+    # best_right_score = 0
+
+    # # Match with left templates
+    # for tmpl in left_arrow_templates:
+    #     tmpl_resized = cv.resize(tmpl, (tmpl.shape[1], tmpl.shape[0]))  # Ensure size consistency
+    #     res = cv.matchTemplate(gray_frame, tmpl_resized, cv.TM_CCOEFF_NORMED)
+    #     _, max_val, _, _ = cv.minMaxLoc(res)
+    #     best_left_score = max(best_left_score, max_val)
+
+    # # Match with right templates
+    # for tmpl in right_arrow_templates:
+    #     tmpl_resized = cv.resize(tmpl, (tmpl.shape[1], tmpl.shape[0]))
+    #     res = cv.matchTemplate(gray_frame, tmpl_resized, cv.TM_CCOEFF_NORMED)
+    #     _, max_val, _, _ = cv.minMaxLoc(res)
+    #     best_right_score = max(best_right_score, max_val)
+
+    # threshold = 0.5
+
+    # if best_left_score > threshold or best_right_score > threshold:
+    #     if best_left_score > best_right_score:
+    #         error -= correction_factor
+    #         print("Left arrow detected")
+    #     else:
+    #         error += correction_factor
+    #         print("Right arrow detected")
+    # else:
+    #     print("No confident arrow match")
+    # return error
+    #Backup arrow detection
     correction_factor = 100;
 
     # Find contours of black arrow
@@ -34,7 +68,7 @@ def arrow_detection(frame, error):
     return error
 
 # Function that detects purple obstacles and increases or decreases the PID error accordingly
-def obstacle_detection(hsv_img, error, img):
+def obstacle_detection(hsv_img, error):
     # Some value for correcting the PID
     correction_factor = 25
     # Getting the contour of obstacle
