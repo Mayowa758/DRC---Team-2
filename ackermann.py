@@ -49,7 +49,7 @@ RIGHT_EN = 13   # PWM pin
 GPIO.setmode(GPIO.BCM)
 
 # Setup direction pins
-GPIO.setup(ENABLE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO.setup(ENABLE_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(LEFT_IN1, GPIO.OUT)
 GPIO.setup(LEFT_IN2, GPIO.OUT)
 GPIO.setup(RIGHT_IN1, GPIO.OUT)
@@ -94,7 +94,7 @@ def compute_steering_angle(control):
         return 0
         
     # Compute geometric angle using Pure Pursuit
-    desired_angle_rad = math.atan2(control, LOOKAHEAD_Y)
+    desired_angle_rad = math.atan2(control, LOOKAHEAD_DISTANCE)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
