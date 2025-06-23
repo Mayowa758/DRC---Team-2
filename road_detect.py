@@ -59,7 +59,11 @@ def get_largest_contour(contours):
 
 # This function is responsible for the maths behind the road detection getting centers, moments etc.
 def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
+    # Default values so the code doesn't break
     error = 0
+    center_x = transformed_frame.shape[1] // 2
+
+    # If valid blue and yellow contours peform the road detection functionality
     if blue_contour and yellow_contour:
         blue_line = get_largest_contour(blue_contour)
         yellow_line = get_largest_contour(yellow_contour)
@@ -92,9 +96,9 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
             # Showcases the error
             cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
                     (0, 255, 255), 2)
-            return error
+            return (error, center_x)
     else:
-        return error
+        return (error, center_x)
         # Backup code if one or no lines are detected
         # elif yellow_contour and not blue_contour:
         #     error = frame_center_x + 50
@@ -170,8 +174,8 @@ def road_detect():
         (blue_contour, yellow_contour) = road_setup(hsv_img, transformed_frame)
 
         # Obtain error for PID detection
-        error = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        error = arrow_detection(transformed_frame, error)
+        error, road_center_x = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(transformed_frame, error, road_center_x)
         error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
