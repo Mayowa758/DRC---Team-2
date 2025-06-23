@@ -4,33 +4,8 @@ import numpy as np
 import math
 # from gpiozero import AngularServo
 
-# Pure pursuit constants
-LOOKAHEAD_DISTANCE = 30
-SCALING_FACTOR = 0.5
 
-# Angle and Pulse constants
-MAX_STEERING_ANGLE = 30
-MIN_STEERING_ANGLE = -30
-PULSE_MIN = 1000
-PULSE_MAX = 2000
-
-# PID constants
-# These values will need to be adjusted
-KP = 0.4    # proportional constant
-KI = 0.01   # integral constant
-KD = 0.2    # derivative constant
-
-# PID state
-integral = 0
-last_error = 0
-
-# Integral limit to prevent windup
-INTEGRAL_MAX = 100
-INTEGRAL_MIN = -100
-
-# Enable pin
-# ENABLE_PIN = 17
-
+#################################### Defining servo and DC motor connection pins ################################################
 # Connecting the servo
 SERVO_PIN = 18
 servo_pwm = pigpio.pi()
@@ -46,6 +21,39 @@ RIGHT_IN1 = 27
 RIGHT_IN2 = 22
 RIGHT_EN = 13   # PWM pin
 
+
+######################################### PID constants and global variables #####################################################
+# PID constants
+# These values will need to be adjusted
+KP = 0.4    # proportional constant
+KI = 0.01   # integral constant
+KD = 0.2    # derivative constant
+
+# PID state
+integral = 0
+last_error = 0
+
+# Integral limit to prevent windup
+INTEGRAL_MAX = 100
+INTEGRAL_MIN = -100
+
+
+##################################### Computing speed and angle constants ########################################################
+# Pure pursuit constants
+LOOKAHEAD_DISTANCE = 30
+SCALING_FACTOR = 0.5
+
+# Angle and Pulse constants
+MAX_STEERING_ANGLE = 30
+MIN_STEERING_ANGLE = -30
+PULSE_MIN = 1000
+PULSE_MAX = 2000
+
+# Enable pin
+# ENABLE_PIN = 17
+
+
+################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
 GPIO.setmode(GPIO.BCM)
 
 # Setup direction pins
@@ -54,7 +62,6 @@ GPIO.setup(LEFT_IN1, GPIO.OUT)
 GPIO.setup(LEFT_IN2, GPIO.OUT)
 GPIO.setup(RIGHT_IN1, GPIO.OUT)
 GPIO.setup(RIGHT_IN2, GPIO.OUT)
-
 
 # Setup PWM pins
 GPIO.setup(LEFT_EN, GPIO.OUT)
@@ -74,6 +81,7 @@ left_pwm.start(0)   # Start with 0% duty cycle (stopped)
 right_pwm.start(0)
 
 
+#################################################### FUNCTIONS ####################################################################
 # This function converts the PID error into a steering angle
 def compute_PID_error(error, dt):
     global integral, last_error
@@ -105,11 +113,13 @@ def compute_steering_angle(control):
     
     return steering_angle
 
-# This function allows the steering angle calculated to be actuated on the servo
-def set_servo_angle(angle):
-    # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
-    pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+# This function calculates the speed of the wheels based on the steering angle
+def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
+    angle = abs(steering_angle)
+
+    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
+    return speed
+
 
 
 ##################### Nick's code for setting the servo angle ##########################
@@ -132,18 +142,19 @@ def set_servo_angle(angle):
 #             sleep(0.1)
 #########################################################################################
 
-# This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
-    angle = abs(steering_angle)
 
-    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
-    return speed
+# This function allows the steering angle calculated to be actuated on the servo
+def set_servo_angle(angle):
+    # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
+    pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
+    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 # This function allows the speed calculated to be actuated on the DC motors
 def set_motor_speed(speed):
     duty = speed * 100
     left_pwm.ChangeDutyCycle(duty)
     right_pwm.ChangeDutyCycle(duty)
+
 
 # This function stops the servo but doesn't turn it off
 def stop_servo():
