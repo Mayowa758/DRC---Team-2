@@ -29,7 +29,7 @@ INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
 # Enable pin
-ENABLE_PIN = 17
+# ENABLE_PIN = 17
 
 # Connecting the servo
 SERVO_PIN = 18
