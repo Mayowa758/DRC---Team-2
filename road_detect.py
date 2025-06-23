@@ -123,6 +123,7 @@ error = 0
 prev_time = time.time()
 
 def road_detect():
+    started = False
     finished = False
     
     # Applies camera undistortion right before we capture video
@@ -137,13 +138,13 @@ def road_detect():
     # The video capture of the camera
     while True:
         _, img = video.read()
-        
-        if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
-            stop_motors()    # this is for safety (to make sure the car is stopped)
-            stop_servo()
-            print("Movement disabled. Waiting for enable switch...")
-            time.sleep(0.5)
-            continue
+
+        # if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
+        #     stop_motors()    # this is for safety (to make sure the car is stopped)
+        #     stop_servo()
+        #     print("Movement disabled. Waiting for enable switch...")
+        #     time.sleep(0.5)
+        #     continue
 
         if finished:
             stop_motors()
@@ -155,16 +156,22 @@ def road_detect():
                     print("Resetting car...")
                     finished = False
                     break
-                elif key == ord('q')
-                print("Exiting program...")
-                turn_off_servo()
-                turn_off_motors()
-                cleanup_GPIO()
-                video.release()
-                cv.destroyAllWindows()
-                return
-            continue
+                elif key == ord('q'):
+                    print("Exiting program...")
+                    turn_off_servo()
+                    turn_off_motors()
+                    cleanup_GPIO()
+                    video.release()
+                    cv.destroyAllWindows()
+                    return
+            # continue
             
+        if cv.waitKey(1) & 0xFF == ord(' '):
+            started = True
+
+        if not started:
+            continue
+
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
@@ -213,6 +220,7 @@ def road_detect():
 
         if finish_line(transformed_frame):
             finished = True
+            started = False
             continue
 
         # cv.imshow('before', prev)
