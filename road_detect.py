@@ -7,21 +7,23 @@ from misc_detect import *
 from ackermann import *
 import time
 
-# Initialise the video reading device and the resolution of video
-video = cv.VideoCapture(0)
-window_width = 640
-window_height = 480
-
-# Change the frame resolution and rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
-video.set(cv.CAP_PROP_FPS, 30)
-
 # Setting default initial error value
 error = 0
-
+init_GPIO()
 # Getting the created arrow templates
-left_arrow_templates, right_arrow_templates = load_templates()
+# left_arrow_templates, right_arrow_templates = load_templates()
+
+# Function is responsible for getting the video of the camera
+def init_camera():
+    video = cv.VideoCapture(0)
+    if not video.isOpened():
+        raise RuntimeError("Camera could not be opened. Check if it is connected and not used by another process.")
+    video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+    video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+    video.set(cv.CAP_PROP_FPS, 30)
+    return video
+
+video = init_camera()
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):

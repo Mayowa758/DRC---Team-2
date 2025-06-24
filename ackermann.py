@@ -36,22 +36,26 @@ LEFT_PWM = 18    # PWM pin
 RIGHT_DIR = 27
 RIGHT_PWM = 13   # PWM pin
 
-GPIO.setmode(GPIO.BCM)
+GPIO_INITIALIZED = False
 
-# Setup direction pins
-GPIO.setup(LEFT_DIR, GPIO.OUT)
-GPIO.setup(RIGHT_DIR, GPIO.OUT)
+# Function to set up the GPIO
+def init_GPIO():
+    global GPIO_INITIALIZED
+    if GPIO_INITIALIZED:
+        return
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+    GPIO.setup(LEFT_DIR, GPIO.OUT)
+    GPIO.setup(RIGHT_DIR, GPIO.OUT)
+    GPIO.setup(LEFT_PWM, GPIO.OUT)
+    GPIO.setup(RIGHT_PWM, GPIO.OUT)
+    GPIO_INITIALIZED = True
 
-# Setup PWM pins
-GPIO.setup(LEFT_PWM, GPIO.OUT)
-GPIO.setup(RIGHT_PWM, GPIO.OUT)
-
-# Initialise PWM
-left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
-right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
-left_pwm.start(0)   # Start with 0% duty cycle (stopped)
-right_pwm.start(0)
-
+    # Initialise PWM
+    left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
+    right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
+    left_pwm.start(0)   # Start with 0% duty cycle (stopped)
+    right_pwm.start(0)
 
 # This function converts the PID error into a steering angle
 def convert_PID_error_to_steering_angle(error, dt):
