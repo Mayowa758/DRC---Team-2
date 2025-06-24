@@ -152,8 +152,7 @@ def road_detect():
     ret, frame = video.read()
     if not ret or frame is None:
         raise RuntimeError("Failed to read frame from camera")
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
-                                                    0, (window_width, window_height))
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
     h, w = frame.shape[:2]
     mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
 
