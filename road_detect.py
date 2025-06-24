@@ -153,18 +153,28 @@ def road_setup(hsv_img, transformed_frame):
 # MAIN RUNNING FUNCTION
 def road_detect():
     # Applies camera undistortion right before we capture video
-    ret, frame = video.read()
-    if not ret or frame is None:
-        raise RuntimeError("Failed to read frame from camera")
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
-    h, w = frame.shape[:2]
-    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+    tries = 20
+    while True:
+        ret, frame = video.read()
+        if not ret or frame is None:
+            print("Failed to read frame from camera")
+            trys -= 1
+        elif tries > 0:
+            newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
+            h, w = frame.shape[:2]
+            mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+            break
+        else:
+            raise RuntimeError("Failed to read frame from camera")
 
     # The video capture of the camera
     while True:
         global error
         # Setup for road detection
         _, img = video.read()
+        if not _ or img is None:
+            print("Frame capture failed, skipping this frame.")
+            continue
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)

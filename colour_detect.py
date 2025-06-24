@@ -89,6 +89,9 @@ def run_video():
 
     while True:
         _, img = video.read()
+        if not _ or img is None:
+            print("Frame capture failed, skipping this frame.")
+            continue
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
