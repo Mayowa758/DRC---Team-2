@@ -10,6 +10,7 @@ import time
 # Setting default initial error value
 error = 0
 init_GPIO()
+
 # Getting the created arrow templates
 # left_arrow_templates, right_arrow_templates = load_templates()
 
