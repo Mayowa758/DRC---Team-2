@@ -57,7 +57,7 @@ def init_GPIO():
     global GPIO_INITIALIZED, left_pwm, right_pwm, servo
     if GPIO_INITIALIZED:
         return left_pwm, right_pwm, servo
-
+    GPIO.setmode(GPIO.BCM)
     GPIO.setup(LEFT_DIR, GPIO.OUT)
     GPIO.setup(RIGHT_DIR, GPIO.OUT)
     GPIO.setup(LEFT_PWM, GPIO.OUT)
@@ -93,7 +93,7 @@ def compute_PID_error(error, dt):
     last_error = error
 
     control = KP * error + KI * integral + KD * derivative
-    
+
     return control
 
 # This function computes the steering angle from the adjusted error/control value
@@ -101,17 +101,17 @@ def compute_steering_angle(control):
     # Avoiding small unnecessary conections (which will jitter the servo)
     if abs(control) < 5:
         return 0
-        
+
     # Compute geometric angle using Pure Pursuit
     desired_angle_rad = math.atan2(control, LOOKAHEAD_DISTANCE)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
     steering_angle = MAX_STEERING_ANGLE * np.tanh(desired_angle_deg / SCALING_FACTOR)
-    
+
     # Clamp angle to (allowed) range
     steering_angle = max(min(steering_angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
-    
+
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
@@ -165,7 +165,7 @@ def set_motor_speed(speed):
 # This function stops the servo but doesn't turn it off
 def stop_servo():
     servo.angle = 0
-    
+
 # This function turns the servo motor off
 def turn_off_servo():
     # servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)

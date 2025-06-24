@@ -16,7 +16,7 @@ def arrow_detection(frame, error, road_center_x):
 
     # Initial checks to see if arrow is valid
     if not arrow_contours or road_center_x is None:
-        print("No Valid arrow")
+        # print("No Valid arrow")
         return error
     arrow_area = get_largest_contour(arrow_contours)
     arrow_M = cv.moments(arrow_area)
@@ -24,7 +24,7 @@ def arrow_detection(frame, error, road_center_x):
     if arrow_M['m00'] == 0:
         return error
     if cv.contourArea(arrow_area) < 1000:
-        print("Nothing detected")
+        # print("Nothing detected")
         return error
 
     # Calculate the centroid of the black arrow
@@ -37,10 +37,10 @@ def arrow_detection(frame, error, road_center_x):
     # Perform the error correction
     if arrow_Mx > road_center_x:
         error -= correction_factor
-        print("left")
+        # print("left")
     elif arrow_Mx < road_center_x:
         error += correction_factor
-        print("right");
+        # print("right")
 
     return error
 
