@@ -1,7 +1,8 @@
-import pigpio
+# import pigpio
 import RPi.GPIO as GPIO
 import numpy as np
-# from gpiozero import AngularServo
+from gpiozero import AngularServo
+from time import *
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
@@ -24,8 +25,8 @@ INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
 # Connecting the servo
-SERVO_PIN = 35
-pi = pigpio.pi()
+SERVO_PIN = 25
+# pi = pigpio.pi()
 
 # Connecting the DC motors
 # Left motor
@@ -57,7 +58,15 @@ def init_GPIO():
     left_pwm.start(0)   # Start with 0% duty cycle (stopped)
     right_pwm.start(0)
 
-    return left_pwm, right_pwm
+    servo = AngularServo(
+        pin = SERVO_PIN,
+        min_angle = MIN_STEERING_ANGLE,
+        max_angle = MAX_STEERING_ANGLE,
+        min_pulse_width = PULSE_MIN,
+        max_pulse_width = PULSE_MAX
+    )
+
+    return left_pwm, right_pwm, servo
 
 # This function converts the PID error into a steering angle
 def convert_PID_error_to_steering_angle(error, dt):
@@ -75,11 +84,18 @@ def convert_PID_error_to_steering_angle(error, dt):
 
     return steering_angle
 
+
+left_pwm, right_pwm, servo = init_GPIO()
+servo.angle = 0
+
+
 # This function allows the steering angle calculated to be actuated on the servo
 def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
-    pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+    angle = max(MIN_STEERING_ANGLE, min(MAX_STEERING_ANGLE, angle))
+    servo.angle = angle
+    # pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
+    # pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 
 ##################### Nick's code for setting the servo angle ##########################
@@ -102,8 +118,6 @@ def set_servo_angle(angle):
 #             sleep(0.1)
 #########################################################################################
 
-left_pwm, right_pwm = init_GPIO()
-
 # This function calculates the speed of the wheels based on the steering angle
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     angle = abs(steering_angle)
@@ -119,8 +133,11 @@ def set_motor_speed(speed):
 
 # This function turns the servo motor off
 def close_servo():
-    pi.set_servo_pulsewidth(SERVO_PIN, 0)
-    pi.stop()
+    # pi.set_servo_pulsewidth(SERVO_PIN, 0)
+    # pi.stop()
+    servo.angle = 0
+    time.sleep(0.5)
+    servo.detach()
 
 # This function stops the motor but doesn't turn it off
 def stop_motor():
