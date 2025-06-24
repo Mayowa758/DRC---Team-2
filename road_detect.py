@@ -116,14 +116,14 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
 # Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame):
-    blue_range = get_limits(blue)
-    blue_mask = get_mask(transformed_frame, blue_range, kernel)
-    blue_contour, _ = cv.findContours(blue_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    green_range = get_limits(green)
+    green_mask = get_mask(transformed_frame, green_range, kernel)
+    green_contour, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     frame_x = transformed_frame.shape[1]
     frame_y = transformed_frame.shape[0]
-    if blue_contour:
-        blue_area = get_largest_contour(blue_contour)
-        x, y, w, h = cv.boundingRect(blue_area)
+    if green_contour:
+        green_area = get_largest_contour(green_contour)
+        x, y, w, h = cv.boundingRect(green_area)
         if h > 20 and w > frame_x * 0.4 and y > frame_y * 0.7:
             print("We made it to the finish!!")
             stop_motors()
