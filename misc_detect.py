@@ -8,7 +8,7 @@ upper_black = np.array([130, 50, 179])
 
 # Function that detects a black arrow on the ground and turns in the following direction
 def arrow_detection(frame, error, road_center_x):
-    correction_factor = 100;
+    correction_factor = 100
 
     # Find contours of black arrow
     black_range = get_limits(black)
