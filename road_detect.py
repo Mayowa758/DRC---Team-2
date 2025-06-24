@@ -32,9 +32,8 @@ video.set(cv.CAP_PROP_FPS, 30)
 def shutdown():
     print("Shutting down...")
     try:
-        stop_motor()
-        close_motor()
-        close_servo()  # set servo to 0 angle, then detach
+        stop_motors()
+        stop_servo()  # set servo to 0 angle, then detach
     finally:
         cleanup_GPIO()
 
@@ -127,7 +126,10 @@ def finish_line(transformed_frame):
         x, y, w, h = cv.boundingRect(green_area)
         if h > 20 and w > frame_x * 0.6 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            stop_motor()
+            stop_motors()
+            stop_servo()
+            return True
+    return False
 
 # Starting timer right before video capture
 prev_time = time.time()
@@ -161,6 +163,9 @@ def road_setup(hsv_img, transformed_frame):
 
 # MAIN RUNNING FUNCTION
 def road_detect():
+    started = False
+    finished = False
+    
     # Applies camera undistortion right before we capture video
     ret, frame = video.read()
     if not ret or frame is None:
@@ -175,9 +180,44 @@ def road_detect():
         global error
         # Setup for road detection
         _, img = video.read()
+
+        # if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
+        #     stop_motors()    # this is for safety (to make sure the car is stopped)
+        #     stop_servo()
+        #     print("Movement disabled. Waiting for enable switch...")
+        #     time.sleep(0.5)
+        #     continue
+
+        if finished:
+            stop_motors()
+            stop_servo()
+            print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
+            while True:
+                key = cv.waitKey(1) & 0xFF
+                if key == ord('r'):
+                    print("Resetting car...")
+                    finished = False
+                    break
+                elif key == ord('q'):
+                    print("Exiting program...")
+                    turn_off_servo()
+                    turn_off_motors()
+                    cleanup_GPIO()
+                    video.release()
+                    cv.destroyAllWindows()
+                    return
+            # continue
+            
+        if cv.waitKey(1) & 0xFF == ord(' '):
+            started = True
+
+        if not started:
+            continue
+
         if not _ or img is None:
             print("Frame capture failed, skipping this frame.")
             continue
+        
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
@@ -197,13 +237,19 @@ def road_detect():
         prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        steering_angle = convert_PID_error_to_steering_angle(error, dt)
+        control = compute_PID_error(error, dt)
+        steering_angle = compute_steering_angle(control)
         speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
         set_servo_angle(steering_angle)
         set_motor_speed(speed)
-        finish_line(transformed_frame)
+
+        if finish_line(transformed_frame):
+            finished = True
+            started = False
+            continue
+
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
         cv.imshow('bird', transformed_frame)
