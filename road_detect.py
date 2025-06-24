@@ -210,14 +210,9 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    
+    shutdown()
     video.release()
     cv.destroyAllWindows()
 
 if __name__ == "__main__":
-    try:
-        road_detect()
-    except KeyboardInterrupt:
-        print("Interrupted")
-    finally:
-        shutdown()
+    road_detect()
