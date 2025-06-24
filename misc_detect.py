@@ -16,6 +16,7 @@ def arrow_detection(frame, error, road_center_x):
 
     # Initial checks to see if arrow is valid
     if not arrow_contours or road_center_x is None:
+        print("No Valid arrow")
         return error
     arrow_area = get_largest_contour(arrow_contours)
     arrow_M = cv.moments(arrow_area)

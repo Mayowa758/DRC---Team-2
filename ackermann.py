@@ -1,14 +1,17 @@
-# import pigpio
 import RPi.GPIO as GPIO
 import numpy as np
 from gpiozero import AngularServo
-from time import *
+import time
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 30
 MIN_STEERING_ANGLE = -30
-PULSE_MIN = 1000
-PULSE_MAX = 2000
+PULSE_MIN = 0.001
+PULSE_MAX = 0.002
 
 # PID constants
 # These values will need to be adjusted
@@ -26,7 +29,6 @@ INTEGRAL_MIN = -100
 
 # Connecting the servo
 SERVO_PIN = 25
-# pi = pigpio.pi()
 
 # Connecting the DC motors
 # Left motor
@@ -41,11 +43,10 @@ GPIO_INITIALIZED = False
 
 # Function to set up the GPIO
 def init_GPIO():
-    global GPIO_INITIALIZED
+    global GPIO_INITIALIZED, left_pwm, right_pwm, servo
     if GPIO_INITIALIZED:
-        return
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
+        return left_pwm, right_pwm, servo
+
     GPIO.setup(LEFT_DIR, GPIO.OUT)
     GPIO.setup(RIGHT_DIR, GPIO.OUT)
     GPIO.setup(LEFT_PWM, GPIO.OUT)
@@ -55,18 +56,20 @@ def init_GPIO():
     # Initialise PWM
     left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
     right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
-    left_pwm.start(0)   # Start with 0% duty cycle (stopped)
+    left_pwm.start(0)
     right_pwm.start(0)
 
+    # Initialise AngularServo (now using seconds)
     servo = AngularServo(
-        pin = SERVO_PIN,
-        min_angle = MIN_STEERING_ANGLE,
-        max_angle = MAX_STEERING_ANGLE,
-        min_pulse_width = PULSE_MIN,
-        max_pulse_width = PULSE_MAX
+        pin=SERVO_PIN,
+        min_angle=MIN_STEERING_ANGLE,
+        max_angle=MAX_STEERING_ANGLE,
+        min_pulse_width=PULSE_MIN,  # 0.001
+        max_pulse_width=PULSE_MAX   # 0.002
     )
 
     return left_pwm, right_pwm, servo
+
 
 # This function converts the PID error into a steering angle
 def convert_PID_error_to_steering_angle(error, dt):

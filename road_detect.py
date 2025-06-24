@@ -28,6 +28,16 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
+# Shutsdown the motors once program is quit
+def shutdown():
+    print("Shutting down...")
+    try:
+        stop_motor()
+        close_motor()
+        close_servo()  # set servo to 0 angle, then detach
+    finally:
+        cleanup_GPIO()
+
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
     new_mask = blue | yellow
@@ -200,11 +210,14 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    close_servo()
-    close_motor()
-    cleanup_GPIO()
+    
     video.release()
     cv.destroyAllWindows()
 
 if __name__ == "__main__":
-    road_detect()
+    try:
+        road_detect()
+    except KeyboardInterrupt:
+        print("Interrupted")
+    finally:
+        shutdown()
