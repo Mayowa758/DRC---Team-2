@@ -9,22 +9,24 @@ import time
 
 # Setting default initial error value
 error = 0
-init_GPIO()
+# init_GPIO()
 
 # Getting the created arrow templates
 # left_arrow_templates, right_arrow_templates = load_templates()
 
 # Function is responsible for getting the video of the camera
-def init_camera():
-    video = cv.VideoCapture(0)
-    if not video.isOpened():
-        raise RuntimeError("Camera could not be opened. Check if it is connected and not used by another process.")
-    video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-    video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
-    video.set(cv.CAP_PROP_FPS, 30)
-    return video
+video = cv.VideoCapture(0)  # Try 1, 2, etc. if 0 fails
 
-video = init_camera()
+if not video.isOpened():
+    print("Cannot open camera")
+    exit()
+window_width = 640
+window_height = 480
+
+# Change the frame resolution and rate of the camera
+video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
+video.set(cv.CAP_PROP_FPS, 30)
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
@@ -52,13 +54,6 @@ def perspective_transform(img):
     transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
 
     return transformed_frame
-
-# This function gets the largest contours extracted from camera view
-def get_largest_contour(contours):
-    if contours:
-        return max(contours, key=cv.contourArea)
-    else :
-      return None
 
 # This function is responsible for the maths behind the road detection getting centers, moments etc.
 def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
@@ -153,22 +148,18 @@ def road_setup(hsv_img, transformed_frame):
     yellow_contour, _ = cv.findContours(yellow_mask_bv, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     return (blue_contour, yellow_contour)
 
+
 # MAIN RUNNING FUNCTION
 def road_detect():
     # Applies camera undistortion right before we capture video
-    tries = 20
-    while True:
-        ret, frame = video.read()
-        if not ret or frame is None:
-            print("Failed to read frame from camera")
-            tries -= 1
-            if tries == 0:
-                raise RuntimeError("Failed to read frame from camera")
-        elif tries > 0:
-            newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
-            h, w = frame.shape[:2]
-            mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
-            break
+    ret, frame = video.read()
+    if not ret or frame is None:
+        raise RuntimeError("Failed to read frame from camera")
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
+                                                    0, (window_width, window_height))
+    h, w = frame.shape[:2]
+    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
     # The video capture of the camera
     while True:
         global error
@@ -191,6 +182,7 @@ def road_detect():
 
         # Converting error into steering angle using PID control
         current_time = time.time()
+        global prev_time
         dt = current_time - prev_time
         prev_time = current_time
 
@@ -208,9 +200,9 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # close_servo()
-    # close_motor()
-    # cleanup_GPIO()
+    close_servo()
+    close_motor()
+    cleanup_GPIO()
     video.release()
     cv.destroyAllWindows()
 

@@ -66,11 +66,11 @@ black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")
 
 def run_video():
-    video = cv.VideoCapture(0)
+    # video = cv.VideoCapture(0)
 
-    video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-    video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
-    video.set(cv.CAP_PROP_FPS, 30)
+    # video.set(cv.CAP_PROP_FRAME_WIDTH, 640)
+    # video.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+    # video.set(cv.CAP_PROP_FPS, 30)
 
     # Might need this idk
     BLUE = 0
@@ -79,67 +79,67 @@ def run_video():
     PURPLE = 3
     GREEN = 4
 
-    ret, frame = video.read()
-    if not ret or frame is None:
-        raise RuntimeError("Failed to read frame from camera")
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
-    h, w = frame.shape[:2]
-    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+    # ret, frame = video.read()
+    # if not ret or frame is None:
+    #     raise RuntimeError("Failed to read frame from camera")
+    # newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
+    # h, w = frame.shape[:2]
+    # mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
 
 
-    while True:
-        _, img = video.read()
-        if not _ or img is None:
-            print("Frame capture failed, skipping this frame.")
-            continue
-        img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
-        img = cv.GaussianBlur(img, (13, 13), 0)
-        hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+    # while True:
+    #     _, img = video.read()
+    #     if not _ or img is None:
+    #         print("Frame capture failed, skipping this frame.")
+    #         continue
+    #     img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
+    #     img = cv.GaussianBlur(img, (13, 13), 0)
+    #     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
-        # BLUE and YELLOW are for road lines
-        # RED and PURPLE obstacle detection draw rectangles maybe
-        # GREEN is the end
+    #     # BLUE and YELLOW are for road lines
+    #     # RED and PURPLE obstacle detection draw rectangles maybe
+    #     # GREEN is the end
 
-        blue_range = get_limits(blue)
-        yellow_range = get_limits(yellow)
-        red_range = get_limits(red)
-        purple_range = get_limits(purple)
-        green_range = get_limits(green)
+    #     blue_range = get_limits(blue)
+    #     yellow_range = get_limits(yellow)
+    #     red_range = get_limits(red)
+    #     purple_range = get_limits(purple)
+    #     green_range = get_limits(green)
 
-        mask_blue = get_mask(hsv_img, blue_range, kernel)
-        mask_yellow = get_mask(hsv_img, yellow_range, kernel)
-        mask_red = get_mask(hsv_img, red_range, kernel)
-        mask_purple = get_mask(hsv_img, purple_range, kernel)
-        mask_green = get_mask(hsv_img, green_range, kernel)
+    #     mask_blue = get_mask(hsv_img, blue_range, kernel)
+    #     mask_yellow = get_mask(hsv_img, yellow_range, kernel)
+    #     mask_red = get_mask(hsv_img, red_range, kernel)
+    #     mask_purple = get_mask(hsv_img, purple_range, kernel)
+    #     mask_green = get_mask(hsv_img, green_range, kernel)
 
-        colour_masks = [
-            {"mask": mask_blue, "label": "blue", "colour": blue},
-            {"mask": mask_yellow, "label": "yellow", "colour": yellow},
-            {"mask": mask_red, "label": "red", "colour": red},
-            {"mask": mask_purple, "label": "purple", "colour": purple},
-            {"mask": mask_green, "label": "green", "colour": green},
-        ]
+    #     colour_masks = [
+    #         {"mask": mask_blue, "label": "blue", "colour": blue},
+    #         {"mask": mask_yellow, "label": "yellow", "colour": yellow},
+    #         {"mask": mask_red, "label": "red", "colour": red},
+    #         {"mask": mask_purple, "label": "purple", "colour": purple},
+    #         {"mask": mask_green, "label": "green", "colour": green},
+    #     ]
 
-        # Uses PIL
-        for entry in colour_masks:
-            colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
+    #     # Uses PIL
+    #     for entry in colour_masks:
+    #         colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
 
         # Uses contours
         # for entry in colour_masks:
         #     draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
 
-        master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
-        # res = cv.bitwise_and(img, img, mask =master_mask)
-        # contours, hierarchy = cv.findContours(mask_red, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+#         master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
+#         # res = cv.bitwise_and(img, img, mask =master_mask)
+#         # contours, hierarchy = cv.findContours(mask_red, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-        cv.imshow("mask", master_mask)
-        cv.imshow("webcam", img)
+#         cv.imshow("mask", master_mask)
+#         cv.imshow("webcam", img)
 
-        if cv.waitKey(1) & 0xFF == ord('q'):
-            break
+#         if cv.waitKey(1) & 0xFF == ord('q'):
+#             break
 
-    video.release()
-    cv.destroyAllWindows()
+#     video.release()
+#     cv.destroyAllWindows()
 
-if __name__ == "__main__":
-    run_video()
+# if __name__ == "__main__":
+#     run_video()

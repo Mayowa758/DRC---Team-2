@@ -1,6 +1,5 @@
 import cv2 as cv
 from colour_detect import *
-from road_detect import *
 from util import *
 
 lower_black = np.array([100, 25, 165])

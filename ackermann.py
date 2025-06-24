@@ -57,6 +57,8 @@ def init_GPIO():
     left_pwm.start(0)   # Start with 0% duty cycle (stopped)
     right_pwm.start(0)
 
+    return left_pwm, right_pwm
+
 # This function converts the PID error into a steering angle
 def convert_PID_error_to_steering_angle(error, dt):
     global integral, last_error
@@ -99,6 +101,8 @@ def set_servo_angle(angle):
 #             print(f"Steering angle set to: {angle_from_pid: .2f}°")
 #             sleep(0.1)
 #########################################################################################
+
+left_pwm, right_pwm = init_GPIO()
 
 # This function calculates the speed of the wheels based on the steering angle
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
