@@ -158,15 +158,14 @@ def road_detect():
         ret, frame = video.read()
         if not ret or frame is None:
             print("Failed to read frame from camera")
-            trys -= 1
+            tries -= 1
+            if tries == 0:
+                raise RuntimeError("Failed to read frame from camera")
         elif tries > 0:
             newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height), 0, (window_width, window_height))
             h, w = frame.shape[:2]
             mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
             break
-        else:
-            raise RuntimeError("Failed to read frame from camera")
-
     # The video capture of the camera
     while True:
         global error
@@ -206,9 +205,9 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    close_servo()
-    close_motor()
-    cleanup_GPIO()
+    # close_servo()
+    # close_motor()
+    # cleanup_GPIO()
     video.release()
     cv.destroyAllWindows()
 
