@@ -88,7 +88,7 @@ def init_GPIO():
     
     GPIO_INITIALIZED = True
 
-    return left_pwm, right_pwm, servo
+    return left_pwm, right_pwm, left_dir, right_dir, servo
 
 
 #################################################### FUNCTIONS ####################################################################
@@ -131,7 +131,7 @@ def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     return speed
 
 
-left_pwm, right_pwm, servo = init_GPIO()
+left_pwm, right_pwm, left_dir, right_dir, servo = init_GPIO()
 
 # This function allows the steering angle calculated to be actuated on the servo
 def set_servo_angle(angle):
