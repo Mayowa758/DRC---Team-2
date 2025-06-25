@@ -12,11 +12,11 @@ SERVO_PIN = 25
 # Defining DC motor pins
 # Left motor
 LEFT_DIR = 23
-LEFT_PWM = 18    
+LEFT_PWM = 18
 
 # Right motor
 RIGHT_DIR = 27
-RIGHT_PWM = 13   
+RIGHT_PWM = 13
 
 GPIO_INITIALIZED = False
 
@@ -118,7 +118,7 @@ def compute_steering_angle(control):
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     angle = abs(steering_angle)
 
-    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
+    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed)
     return speed
 
 
