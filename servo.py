@@ -1,17 +1,21 @@
-import numpy as np
-from gpiozero import AngularServo, PWMOutputDevice, DigitalOutputDevice
-import math
-import time
+from gpiozero import Servo
+from time import sleep
+from gpiozero.pins.pigpio import PiGPIOFactory
 
+factory = PiGPIOFactory()
+servo = Servo(12, pin_factory=factory)
 
-#################################### Defining servo and DC motor connection pins ################################################
-# Defining servo motor pin
-SERVO_PIN = 12
-servo = AngularServo(
-        pin=SERVO_PIN,
-        min_angle=-50,
-        max_angle=50,
-        min_pulse_width=0.001,  # 0.001
-        max_pulse_width=0.002   # 0.002
-    )
-servo.angle = 0
+print("Start in middle")
+servo.mid()
+sleep(1)
+print("Go to min")
+servo.min()
+sleep(1)
+print("Go to max")
+servo.max()
+sleep(1)
+print("back to middle")
+servo.mid()
+sleep(1)
+
+print("end")
