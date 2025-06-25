@@ -11,12 +11,12 @@ SERVO_PIN = 25
 
 # Defining DC motor pins
 # Left motor
-LEFT_DIR = 23
-LEFT_PWM = 18
+LEFT_DIR = 29
+LEFT_PWM = 33
 
 # Right motor
-RIGHT_DIR = 27
-RIGHT_PWM = 13
+RIGHT_DIR = 31
+RIGHT_PWM = 32
 
 GPIO_INITIALIZED = False
 
