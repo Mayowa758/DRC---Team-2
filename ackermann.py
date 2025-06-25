@@ -187,3 +187,12 @@ def turn_off_motors():
 # This function resets all GPIO pins to their default input mode when a program exits, preventing potential issues with connected components
 def cleanup_GPIO():
     GPIO.cleanup()
+
+# Shuts down the motors once program is quit
+def shutdown():
+    print("Shutting down...")
+    try:
+        turn_off_motors()
+        turn_off_servo()  # set servo to 0 angle, then detach
+    finally:
+        cleanup_GPIO()
