@@ -187,8 +187,8 @@ def stop_servo():
 def stop_motors():
     # left_pwm.ChangeDutyCycle(0)
     # right_pwm.ChangeDutyCycle(0)
-    left_pwm.off()
-    right_pwm.off()
+    left_pwm.value = 0
+    right_pwm.value = 0
 
 # This function turns the motor off
 # def turn_off_motors():
@@ -215,6 +215,9 @@ def shutdown():
     servo.value = None
     servo.close()
 
+    left_dir.off()
+    right_dir.off()
+    
     left_pwm.close()
     right_pwm.close()
     left_dir.close()
