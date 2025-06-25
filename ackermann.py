@@ -11,12 +11,13 @@ SERVO_PIN = 25
 
 # Defining DC motor pins
 # Left motor
-LEFT_DIR = 23
-LEFT_PWM = 18
+
+LEFT_DIR = 29
+LEFT_PWM = 33
 
 # Right motor
-RIGHT_DIR = 27
-RIGHT_PWM = 13
+RIGHT_DIR = 31
+RIGHT_PWM = 32
 
 GPIO_INITIALIZED = False
 
@@ -62,7 +63,7 @@ def init_GPIO():
     # GPIO.setup(RIGHT_DIR, GPIO.OUT)
     # GPIO.setup(LEFT_PWM, GPIO.OUT)
     # GPIO.setup(RIGHT_PWM, GPIO.OUT)
-    
+
     # Initialise PWM
     # left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
     # right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
@@ -85,10 +86,10 @@ def init_GPIO():
         max_pulse_width=PULSE_MAX   # 0.002
     )
     servo.angle = 0
-    
+
     GPIO_INITIALIZED = True
 
-    return left_pwm, right_pwm, servo
+    return left_pwm, right_pwm, left_dir, right_dir, servo
 
 
 #################################################### FUNCTIONS ####################################################################
@@ -131,7 +132,7 @@ def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     return speed
 
 
-left_pwm, right_pwm, servo = init_GPIO()
+left_pwm, right_pwm, left_dir, right_dir, servo = init_GPIO()
 
 # This function allows the steering angle calculated to be actuated on the servo
 def set_servo_angle(angle):
@@ -170,7 +171,7 @@ def set_motor_speed(speed):
     duty = max(0.0, min(1.0, speed))
     left_pwm.value = duty
     right_pwm.value = duty
-    
+
 # This function stops the servo but doesn't turn it off
 def stop_servo():
     servo.angle = 0
@@ -208,12 +209,12 @@ def shutdown():
     print("Shutting down...")
     # try:
     stop_motors()
-    
+
     stop_servo()
     time.sleep(1.0)
     servo.value = None
     servo.close()
-    
+
     left_pwm.close()
     right_pwm.close()
     left_dir.close()
