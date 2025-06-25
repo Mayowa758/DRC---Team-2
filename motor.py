@@ -146,6 +146,7 @@ def shutdown():
     #     cleanup_GPIO()
 
 def test():
+    servo.angle = 0
     while True:
         set_motor_speed(0.2)
         time.sleep(3.0)
