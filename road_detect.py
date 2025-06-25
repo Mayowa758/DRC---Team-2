@@ -187,8 +187,6 @@ def road_detect():
         #     continue
 
         if finished:
-            stop_motors()
-            stop_servo()
             print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
             while True:
                 key = cv.waitKey(1) & 0xFF
