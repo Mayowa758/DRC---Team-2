@@ -209,8 +209,8 @@ def shutdown():
     # try:
     stop_motors()
     
-    servo.angle = 0
-    time.sleep(0.5)
+    stop_servo()
+    time.sleep(1.0)
     servo.value = None
     servo.close()
     
