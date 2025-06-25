@@ -176,11 +176,11 @@ def stop_servo():
     servo.angle = 0
 
 # This function turns the servo motor off
-def turn_off_servo():
-    # servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
-    # servo_pwm.stop()
-    servo.angle = 0
-    time.sleep(0.5)
+# def turn_off_servo():
+#     # servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
+#     # servo_pwm.stop()
+#     servo.angle = 0
+#     time.sleep(0.5)
 
 # This function stops the motor but doesn't turn it off
 def stop_motors():
@@ -190,14 +190,14 @@ def stop_motors():
     right_pwm.off()
 
 # This function turns the motor off
-def turn_off_motors():
-    # left_pwm.stop()
-    # right_pwm.stop()
-    stop_motors()
-    left_pwm.close()
-    right_pwm.close()
-    left_dir.close()
-    right_dir.close()
+# def turn_off_motors():
+#     # left_pwm.stop()
+#     # right_pwm.stop()
+#     stop_motors()
+#     left_pwm.close()
+#     right_pwm.close()
+#     left_dir.close()
+#     right_dir.close()
 
 # This function resets all GPIO pins to their default input mode when a program exits, preventing potential issues with connected components
 # def cleanup_GPIO():
@@ -207,7 +207,17 @@ def turn_off_motors():
 def shutdown():
     print("Shutting down...")
     # try:
-    turn_off_motors()
+    stop_motors()
+    
+    servo.angle = 0
+    time.sleep(0.5)
+    servo.value = None
+    servo.close()
+    
+    left_pwm.close()
+    right_pwm.close()
+    left_dir.close()
+    right_dir.close()
     turn_off_servo()  # set servo to 0 angle, then detach
     # finally:
     #     cleanup_GPIO()
