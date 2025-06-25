@@ -28,14 +28,6 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
-# Shutsdown the motors once program is quit
-def shutdown():
-    print("Shutting down...")
-    try:
-        stop_motors()
-        stop_servo()  # set servo to 0 angle, then detach
-    finally:
-        cleanup_GPIO()
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
