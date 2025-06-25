@@ -218,6 +218,6 @@ def shutdown():
     right_pwm.close()
     left_dir.close()
     right_dir.close()
-    turn_off_servo()  # set servo to 0 angle, then detach
+    # turn_off_servo()  # set servo to 0 angle, then detach
     # finally:
     #     cleanup_GPIO()
