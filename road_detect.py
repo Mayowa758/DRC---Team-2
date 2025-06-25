@@ -28,14 +28,6 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
-# Shutsdown the motors once program is quit
-def shutdown():
-    print("Shutting down...")
-    try:
-        stop_motors()
-        stop_servo()  # set servo to 0 angle, then detach
-    finally:
-        cleanup_GPIO()
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
@@ -126,8 +118,6 @@ def finish_line(transformed_frame):
         x, y, w, h = cv.boundingRect(green_area)
         if h > 20 and w > frame_x * 0.4 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            stop_motors()
-            stop_servo()
             return True
     return False
 
@@ -206,8 +196,6 @@ def road_detect():
         #     continue
 
         if finished:
-            stop_motors()
-            stop_servo()
             print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
             while True:
                 key = cv.waitKey(1) & 0xFF
@@ -217,9 +205,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    turn_off_servo()
-                    turn_off_motors()
-                    cleanup_GPIO()
+                    shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
@@ -251,6 +237,8 @@ def road_detect():
         set_motor_speed(speed)
 
         if finish_line(transformed_frame):
+            stop_motors()
+            stop_servo()
             finished = True
             started = False
             continue
