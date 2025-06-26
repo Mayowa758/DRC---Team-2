@@ -1,21 +1,34 @@
-from gpiozero import Servo
-from time import sleep
-from gpiozero.pins.pigpio import PiGPIOFactory
+import pigpio
+import time
+# import RPi.GPIO as GPIO
+# GPIO.setmode(GPIO.BCM)
 
-factory = PiGPIOFactory()
-servo = Servo(12, pin_factory=factory)
+# Connect to the pigpio daemon
+pi = pigpio.pi()
 
-print("Start in middle")
-servo.mid()
-sleep(1)
-print("Go to min")
-servo.min()
-sleep(1)
-print("Go to max")
-servo.max()
-sleep(1)
-print("back to middle")
-servo.mid()
-sleep(1)
+# Define the GPIO pin connected to the servo
+servo_pin = 18
 
-print("end")
+# Set the servo pin to output mode
+pi.set_mode(servo_pin, pigpio.OUTPUT)
+
+# Function to move the servo to a specific angle (pulse width in microseconds)
+def set_servo_angle(angle):
+    pulse_width = 1000 + (angle / 180.0) * 1000  # Convert angle to pulse width
+    pi.set_servo_pulsewidth(servo_pin, pulse_width)
+
+# Example usage:
+set_servo_angle(0)
+time.sleep(1)
+set_servo_angle(90)
+time.sleep(1)
+set_servo_angle(180)
+time.sleep(1)
+set_servo_angle(90)
+time.sleep(1)
+
+# Stop the servo
+pi.set_servo_pulsewidth(servo_pin, 0)
+
+# Disconnect from the pigpio daemon
+pi.stop()
