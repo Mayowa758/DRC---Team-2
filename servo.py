@@ -3,7 +3,6 @@ from time import sleep
 from gpiozero.pins.pigpio import PiGPIOFactory
 
 factory = PiGPIOFactory()
-
 servo = Servo(12, pin_factory=factory)
 
 print("Start in middle")

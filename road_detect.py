@@ -155,14 +155,23 @@ def road_setup(hsv_img, transformed_frame):
 def road_detect():
     started = False
     finished = False
-    # Applies camera undistortion right before we capture video
-    ret, frame = video.read()
-    if not ret or frame is None:
-        raise RuntimeError("Failed to read frame from camera")
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
-                                                    0, (window_width, window_height))
-    h, w = frame.shape[:2]
-    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+
+    attempts = 20
+    while (attempts > 0):
+        ret, frame = video.read()
+        if not ret or frame is None:
+            attempts -= 1
+            print("Failed to read frame from camera")
+            continue
+        else:
+            # Applies camera undistortion right before we capture video
+            newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
+                                                            0, (window_width, window_height))
+            h, w = frame.shape[:2]
+            mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
+            break
+    if (attempts == 0):
+            raise RuntimeError("The camera was not able to read after multiple attempts")
 
     # The video capture of the camera
     while True:
@@ -200,8 +209,7 @@ def road_detect():
                     video.release()
                     cv.destroyAllWindows()
                     return
-            # continue
-            
+
         if cv.waitKey(1) & 0xFF == ord(' '):
             started = True
 
