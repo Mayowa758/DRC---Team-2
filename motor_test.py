@@ -2,11 +2,11 @@ import RPi.GPIO as GPIO
 from time import sleep
 
 # Define GPIO pins
-DIR_A = 17
-PWM_A = 18
+DIR_A = 5
+PWM_A = 13
 
-DIR_B = 22
-PWM_B = 23
+DIR_B = 6
+PWM_B = 12
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
