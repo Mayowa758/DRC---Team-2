@@ -4,6 +4,7 @@ from time import sleep
 # Define GPIO pins
 DIR_A = 17
 PWM_A = 18
+
 DIR_B = 22
 PWM_B = 23
 
