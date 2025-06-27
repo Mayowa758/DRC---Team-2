@@ -4,8 +4,8 @@ from util import *
 from configure.undistort_data import *
 from colour_detect import *
 from misc_detect import *
-from ackermann import *
-import time
+# from ackermann import *
+# import time
 
 # Setting default initial error value
 error = 0
@@ -67,6 +67,9 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
         blue_line = get_largest_contour(blue_contour)
         yellow_line = get_largest_contour(yellow_contour)
 
+        if blue_line is None and yellow_line is None:
+            return error, center_x
+
         # Uses moments to find the centers of the blue and yellow line
         M_blue = cv.moments(blue_line)
         M_yellow = cv.moments(yellow_line)
@@ -86,25 +89,31 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
             error = frame_center_x - center_x
             # print(error)
 
-            # Line to show the Calculated Center
+            # Line to show the line between the centroids
             cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
-                    (255, 255, 255), 1)
-            # Line to show the Frame center
-            cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]),
-                    (0, 0, 255), 2)
-            # Showcases the error
-            cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
-                    (0, 255, 255), 2)
+            (255, 255, 255), 1)
             return (error, center_x)
-    else:
-        return (error, center_x)
-        # Backup code if one or no lines are detected
-        # elif yellow_contour and not blue_contour:
-        #     error = frame_center_x + 50
-        # elif blue_contour and not yellow_contour:
-        #     error = frame_center_x - 50
-        # else:
-        #     error += 25
+
+        if blue_line and yellow_line is None:
+            cx_blue = int(M_blue['m10'] / M_blue['m00'])
+            error = frame_center_x - (cx_blue - 50)  # bias to left
+            center_x = cx_blue
+            cv.circle(transformed_frame, (cx_blue, int(M_blue['m01'] / M_blue['m00'])), 5, (255, 0, 0), -1)
+
+        #  # Line to show the Frame center
+        if yellow_line and blue_line is None:
+            cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
+            error = frame_center_x - (cx_yellow + 50)  # bias to right
+            center_x = cx_yellow
+            cv.circle(transformed_frame, (cx_yellow, int(M_yellow['m01'] / M_yellow['m00'])), 5, (0, 255, 255), -1)
+
+        cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]),
+                (0, 0, 255), 2)
+        # Showcases the error
+        cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
+            (0, 255, 255), 2)
+        return error, center_x
+
 
 # Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame):
@@ -122,7 +131,7 @@ def finish_line(transformed_frame):
     return False
 
 # Starting timer right before video capture
-prev_time = time.time()
+# prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -205,7 +214,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    shutdown()
+                    # shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
@@ -222,23 +231,23 @@ def road_detect():
         error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
-        current_time = time.time()
-        global prev_time
-        dt = current_time - prev_time
-        prev_time = current_time
+        # current_time = time.time()
+        # global prev_time
+        # dt = current_time - prev_time
+        # prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        control = compute_PID_error(error, dt)
-        steering_angle = compute_steering_angle(control)
-        speed = calculate_speed(steering_angle)
+        # control = compute_PID_error(error, dt)
+        # steering_angle = compute_steering_angle(control)
+        # speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
-        set_servo_angle(steering_angle)
-        set_motor_speed(speed)
+        # set_servo_angle(steering_angle)
+        # set_motor_speed(speed)
 
         if finish_line(transformed_frame):
-            stop_motors()
-            stop_servo()
+            # stop_motors()
+            # stop_servo()
             finished = True
             started = False
             continue
@@ -249,7 +258,7 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    shutdown()
+    # shutdown()
     video.release()
     cv.destroyAllWindows()
 
