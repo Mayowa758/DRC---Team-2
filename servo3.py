@@ -10,19 +10,19 @@ servo = AngularServo(SERVO_PIN,
 
 try:
     while True:
-        # Move to ~-50�
+        # Move to ~-50
         servo.angle = -50
-        print("Position: ~-50�")
+        print("Position: ~-50")
         sleep(2)
 
-        # Move to center (0�)
+        # Move to center (0)
         servo.angle = 0.0
-        print("Position: 0� (center)")
+        print("Position: 0 (center)")
         sleep(2)
 
-        # Move to ~+50�
+        # Move to ~+50
         servo.angle = 50
-        print("Position: ~+50�")
+        print("Position: ~+50")
         sleep(2)
 
 except KeyboardInterrupt:
