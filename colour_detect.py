@@ -61,7 +61,7 @@ blue = [110, 160, 180]
 yellow = [22, 52, 230]
 red = [0, 255, 255]
 purple = [174, 81, 231]
-green = [60, 255, 255]
+green = [60, 255, 128]
 black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")
 
@@ -89,6 +89,9 @@ def run_video():
 
     while True:
         _, img = video.read()
+        if not _ or img is None:
+            print("Frame capture failed, skipping this frame.")
+            continue
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
@@ -122,8 +125,8 @@ def run_video():
             colour_detect_test(img, entry["mask"], entry["label"], entry["colour"])
 
         # Uses contours
-        # for entry in colour_masks:
-        #     draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
+        for entry in colour_masks:
+            draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
 
         master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
         # res = cv.bitwise_and(img, img, mask =master_mask)
