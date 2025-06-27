@@ -1,21 +1,25 @@
 import RPi.GPIO as GPIO
 import numpy as np
-from gpiozero import AngularServo, DigitalOutputDevice
+from gpiozero import AngularServo
 import math
 import time
-
-# Angle and Pulse constants
-MAX_STEERING_ANGLE = 50
-MIN_STEERING_ANGLE = -50
-# PULSE_MIN = 1000
-# PULSE_MAX = 2000
-# MIN_DUTY_CYCLE = 5
-# MAX_DUTY_CYCLE = 10
 
 
 #################################### Defining servo and DC motor connection pins ################################################
 # Defining servo motor pin
+SERVO_PIN = 18
+
+# Defining DC motor pins
+# Left motor
+LEFT_DIR = 5
+LEFT_PWM = 13    
+
+# Right motor
+RIGHT_DIR = 6
+RIGHT_PWM = 12
+
 GPIO_INITIALIZED = False
+
 
 ######################################### PID constants and global variables #####################################################
 # PID constants
@@ -32,46 +36,6 @@ last_error = 0
 INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
-# Connecting the servo
-SERVO_PIN = 18
-
-servo = AngularServo(
-    SERVO_PIN,
-    min_angle = MIN_STEERING_ANGLE,
-    max_angle = MAX_STEERING_ANGLE,
-    min_pulse_width = 0.0009,
-    max_pulse_width = 0.0021
-)
-
-# GPIO.setup(SERVO_PIN, GPIO.OUT)
-# servo_pwm = GPIO.PWM(SERVO_PIN, 50)
-# servo_pwm.start(0)
-
-# Connecting the DC motors
-# Left motor
-LEFT_DIR = 5
-LEFT_PWM = 13    # PWM pin
-
-# Right motor
-RIGHT_DIR = 6
-RIGHT_PWM = 12   # PWM pin
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-# Setup direction pins
-GPIO.setup(LEFT_DIR, GPIO.OUT)
-GPIO.setup(RIGHT_DIR, GPIO.OUT)
-
-# Setup PWM pins
-GPIO.setup(LEFT_PWM, GPIO.OUT)
-GPIO.setup(RIGHT_PWM, GPIO.OUT)
-
-# Initialise PWM
-left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
-right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
-left_pwm.start(0)   # Start with 0% duty cycle (stopped)
-right_pwm.start(0)
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
@@ -79,43 +43,48 @@ LOOKAHEAD_DISTANCE = 30
 SCALING_FACTOR = 0.5
 
 # Angle and Pulse constants
-# PULSE_MIN = 0.001
-# PULSE_MAX = 0.002
+MAX_STEERING_ANGLE = 50
+MIN_STEERING_ANGLE = -50
+PULSE_MIN = 0.0009
+PULSE_MAX = 0.0021
 
 ################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setwarnings(False)
-
 # Function to set up the GPIO
 def init_GPIO():
     global GPIO_INITIALIZED, left_pwm, right_pwm, servo
     if GPIO_INITIALIZED:
         return left_pwm, right_pwm, servo
-    # GPIO.setmode(GPIO.BCM)
-    # GPIO.setup(LEFT_DIR, GPIO.OUT)
-    # GPIO.setup(RIGHT_DIR, GPIO.OUT)
-    # GPIO.setup(LEFT_PWM, GPIO.OUT)
-    # GPIO.setup(RIGHT_PWM, GPIO.OUT)
 
-    # Initialise PWM
-    # left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
-    # right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
-    # left_pwm.start(0)
-    # right_pwm.start(0)
-    # left_pwm = PWMOutputDevice(LEFT_PWM)
-    # right_pwm = PWMOutputDevice(RIGHT_PWM)
-    left_dir = DigitalOutputDevice(LEFT_DIR)
-    right_dir = DigitalOutputDevice(RIGHT_DIR)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
-    left_dir.on()
-    right_dir.on()
+    # Setup direction and PWM pins
+    GPIO.setup(LEFT_DIR, GPIO.OUT)
+    GPIO.setup(RIGHT_DIR, GPIO.OUT)
+    GPIO.setup(LEFT_PWM, GPIO.OUT)
+    GPIO.setup(RIGHT_PWM, GPIO.OUT)
+
+    # Initialise direction and PWM pins
+    GPIO.output(LEFT_DIR, GPIO.HIGH)
+    GPIO.output(RIGHT_DIR, GPIO.HIGH)
+    
+    left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
+    right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
+    left_pwm.start(0)
+    right_pwm.start(0)
 
     # Initialise AngularServo (now using seconds)
+    servo = AngularServo(
+        pin=SERVO_PIN,
+        min_angle=MIN_STEERING_ANGLE,
+        max_angle=MAX_STEERING_ANGLE,
+        min_pulse_width=PULSE_MIN,  # 0.0009
+        max_pulse_width=PULSE_MAX   # 0.0021
+    )
     servo.angle = 0
-
+    
     GPIO_INITIALIZED = True
-
-    return left_pwm, right_pwm, left_dir, right_dir, servo
+    return left_pwm, right_pwm, servo
 
 
 #################################################### FUNCTIONS ####################################################################
@@ -129,7 +98,7 @@ def compute_PID_error(error, dt):
     last_error = error
 
     control = KP * error + KI * integral + KD * derivative
-
+    
     return control
 
 # This function computes the steering angle from the adjusted error/control value
@@ -137,39 +106,35 @@ def compute_steering_angle(control):
     # Avoiding small unnecessary conections (which will jitter the servo)
     if abs(control) < 5:
         return 0
-
+        
     # Compute geometric angle using Pure Pursuit
     desired_angle_rad = math.atan2(control, LOOKAHEAD_DISTANCE)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
     steering_angle = MAX_STEERING_ANGLE * np.tanh(desired_angle_deg / SCALING_FACTOR)
-
+    
     # Clamp angle to (allowed) range
     steering_angle = max(min(steering_angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
-
+    
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
 def calculate_speed(steering_angle, max_speed=1.0, min_speed=0.4):
     angle = abs(steering_angle)
 
-    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed)
+    speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
     return speed
 
 
-left_pwm, right_pwm, left_dir, right_dir, servo = init_GPIO()
+left_pwm, right_pwm, servo = init_GPIO()
+
 
 # This function allows the steering angle calculated to be actuated on the servo
 def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
-
-    ## Update: This is change to be more compatible with the PWM duty cycle
-    # Make sure the angle is clamped within the range of what you want.
-    angle = max(min(angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
+    angle = max(MIN_STEERING_ANGLE, min(MAX_STEERING_ANGLE, angle))
     servo.angle = angle
-    # duty = np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [MIN_DUTY_CYCLE, MAX_DUTY_CYCLE])
-    # servo_pwm.ChangeDutyCycle(duty)
     # pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
     # pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
@@ -196,69 +161,42 @@ def set_servo_angle(angle):
 
 # This function allows the speed calculated to be actuated on the DC motors
 def set_motor_speed(speed):
-    # duty = speed * 100
-    # left_pwm.ChangeDutyCycle(duty)
-    # right_pwm.ChangeDutyCycle(duty)
     duty = max(0.0, min(1.0, speed)) * 100
     left_pwm.ChangeDutyCycle(duty)
     right_pwm.ChangeDutyCycle(duty)
 
+
 # This function stops the servo but doesn't turn it off
 def stop_servo():
     servo.angle = 0
-
+    
 # This function turns the servo motor off
-
-def close_servo():
-    servo.angle = None
-    # pi.set_servo_pulsewidth(SERVO_PIN, 0)
-    # pi.stop()
-
-# def turn_off_servo():
-#     # servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
-#     # servo_pwm.stop()
-#     servo.angle = 0
-#     time.sleep(0.5)
-
+def turn_off_servo():
+    # servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
+    # servo_pwm.stop()
+    servo.angle = 0
+    time.sleep(1.0)
+    servo.value = None
+    servo.close()
 
 # This function stops the motor but doesn't turn it off
 def stop_motors():
     left_pwm.ChangeDutyCycle(0)
     right_pwm.ChangeDutyCycle(0)
-    # left_pwm.value = 0
-    # right_pwm.value = 0
 
 # This function turns the motor off
-# def turn_off_motors():
-#     # left_pwm.stop()
-#     # right_pwm.stop()
-#     stop_motors()
-#     left_pwm.close()
-#     right_pwm.close()
-#     left_dir.close()
-#     right_dir.close()
+def turn_off_motors():
+    left_pwm.stop()
+    right_pwm.stop()
 
-# This function resets all GPIO pins to their default input mode when a program exits, preventing potential issues with connected components
+# # This function resets all GPIO pins to their default input mode when a program exits, preventing potential issues with connected components
 # def cleanup_GPIO():
 #     GPIO.cleanup()
 
-# Shuts down the motors once program is quit
 def shutdown():
     print("Shutting down...")
-    # try:
     stop_motors()
-
     stop_servo()
-    time.sleep(1.0)
-    servo.value = None
-    servo.close()
-
-    left_dir.off()
-    right_dir.off()
-
-    left_pwm.stop()
-    right_pwm.stop()
-    left_dir.close()
-    right_dir.close()
-    # set servo to 0 angle, then detach
+    turn_off_servo()
+    turn_off_motors()
     GPIO.cleanup()
