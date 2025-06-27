@@ -1,13 +1,14 @@
-import pigpio
 import RPi.GPIO as GPIO
 import numpy as np
-# from gpiozero import AngularServo
+from gpiozero import AngularServo
 
 # Angle and Pulse constants
-MAX_STEERING_ANGLE = 30
-MIN_STEERING_ANGLE = -30
-PULSE_MIN = 1000
-PULSE_MAX = 2000
+MAX_STEERING_ANGLE = 50
+MIN_STEERING_ANGLE = -50
+# PULSE_MIN = 1000
+# PULSE_MAX = 2000
+MIN_DUTY_CYCLE = 5
+MAX_DUTY_CYCLE = 10
 
 # PID constants
 # These values will need to be adjusted
@@ -25,18 +26,30 @@ INTEGRAL_MIN = -100
 
 # Connecting the servo
 SERVO_PIN = 35
-pi = pigpio.pi()
+
+servo = AngularServo(
+    SERVO_PIN,
+    min_angle = MIN_STEERING_ANGLE,
+    max_angle = MAX_STEERING_ANGLE,
+    min_pulse_width = 0.0009,
+    max_pulse_width = 0.0021
+)
+
+# GPIO.setup(SERVO_PIN, GPIO.OUT)
+# servo_pwm = GPIO.PWM(SERVO_PIN, 50)
+# servo_pwm.start(0)
 
 # Connecting the DC motors
 # Left motor
-LEFT_DIR = 23
-LEFT_PWM = 18    # PWM pin
+LEFT_DIR = 5
+LEFT_PWM = 13    # PWM pin
 
 # Right motor
-RIGHT_DIR = 27
-RIGHT_PWM = 13   # PWM pin
+RIGHT_DIR = 6
+RIGHT_PWM = 12   # PWM pin
 
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
 # Setup direction pins
 GPIO.setup(LEFT_DIR, GPIO.OUT)
@@ -72,8 +85,14 @@ def convert_PID_error_to_steering_angle(error, dt):
 # This function allows the steering angle calculated to be actuated on the servo
 def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
-    pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+    ## Update: This is change to be more compatible with the PWM duty cycle
+    # Make sure the angle is clamped within the range of what you want.
+    angle = max(min(angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
+    servo.angle = angle
+
+    # duty = np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [MIN_DUTY_CYCLE, MAX_DUTY_CYCLE])
+    # servo_pwm.ChangeDutyCycle(duty)
+    # pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 
 ##################### Nick's code for setting the servo angle ##########################
@@ -111,8 +130,9 @@ def set_motor_speed(speed):
 
 # This function turns the servo motor off
 def close_servo():
-    pi.set_servo_pulsewidth(SERVO_PIN, 0)
-    pi.stop()
+    servo.angle = None
+    # pi.set_servo_pulsewidth(SERVO_PIN, 0)
+    # pi.stop()
 
 # This function stops the motor but doesn't turn it off
 def stop_motor():
