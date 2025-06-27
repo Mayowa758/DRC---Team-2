@@ -4,8 +4,8 @@ from util import *
 from configure.undistort_data import *
 from colour_detect import *
 from misc_detect import *
-# from ackermann import *
-# import time
+from ackermann import *
+import time
 
 # Setting default initial error value
 error = 0
@@ -36,7 +36,6 @@ def road_mask(blue, yellow):
 
 # This function is responsible for changing the normal view of camera to a birds-eye perspective
 def perspective_transform(img):
-
     # These values will need to change
     tl = (150, 300)
     bl = (0, 472)
@@ -131,7 +130,7 @@ def finish_line(transformed_frame):
     return False
 
 # Starting timer right before video capture
-# prev_time = time.time()
+prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -214,7 +213,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    # shutdown()
+                    shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
@@ -231,23 +230,23 @@ def road_detect():
         error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
-        # current_time = time.time()
-        # global prev_time
-        # dt = current_time - prev_time
-        # prev_time = current_time
+        current_time = time.time()
+        global prev_time
+        dt = current_time - prev_time
+        prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        # control = compute_PID_error(error, dt)
-        # steering_angle = compute_steering_angle(control)
-        # speed = calculate_speed(steering_angle)
+        control = compute_PID_error(error, dt)
+        steering_angle = compute_steering_angle(control)
+        speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
-        # set_servo_angle(steering_angle)
-        # set_motor_speed(speed)
+        set_servo_angle(steering_angle)
+        set_motor_speed(speed)
 
         if finish_line(transformed_frame):
-            # stop_motors()
-            # stop_servo()
+            stop_motors()
+            stop_servo()
             finished = True
             started = False
             continue
@@ -258,7 +257,7 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
-    # shutdown()
+    shutdown()
     video.release()
     cv.destroyAllWindows()
 
