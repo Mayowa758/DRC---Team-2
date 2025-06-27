@@ -7,8 +7,8 @@ MAX_STEERING_ANGLE = 50
 MIN_STEERING_ANGLE = -50
 # PULSE_MIN = 1000
 # PULSE_MAX = 2000
-MIN_DUTY_CYCLE = 5
-MAX_DUTY_CYCLE = 10
+# MIN_DUTY_CYCLE = 5
+# MAX_DUTY_CYCLE = 10
 
 # PID constants
 # These values will need to be adjusted
