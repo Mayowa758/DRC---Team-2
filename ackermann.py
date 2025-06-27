@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 import numpy as np
-from gpiozero import AngularServo
+from gpiozero import AngularServo, DigitalOutputDevice
+import math
+import time
 
 # Angle and Pulse constants
 MAX_STEERING_ANGLE = 50
@@ -9,27 +11,10 @@ MIN_STEERING_ANGLE = -50
 # PULSE_MAX = 2000
 # MIN_DUTY_CYCLE = 5
 # MAX_DUTY_CYCLE = 10
-# import RPi.GPIO as GPIO
-import numpy as np
-from gpiozero import AngularServo, PWMOutputDevice, DigitalOutputDevice
-import math
-import time
 
 
 #################################### Defining servo and DC motor connection pins ################################################
 # Defining servo motor pin
-SERVO_PIN = 25
-
-# Defining DC motor pins
-# Left motor
-
-LEFT_DIR = 29
-LEFT_PWM = 33
-
-# Right motor
-RIGHT_DIR = 31
-RIGHT_PWM = 32
-
 GPIO_INITIALIZED = False
 
 ######################################### PID constants and global variables #####################################################
@@ -46,8 +31,9 @@ last_error = 0
 # Integral limit to prevent windup
 INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
+
 # Connecting the servo
-SERVO_PIN = 35
+SERVO_PIN = 18
 
 servo = AngularServo(
     SERVO_PIN,
@@ -93,10 +79,8 @@ LOOKAHEAD_DISTANCE = 30
 SCALING_FACTOR = 0.5
 
 # Angle and Pulse constants
-MAX_STEERING_ANGLE = 30
-MIN_STEERING_ANGLE = -30
-PULSE_MIN = 0.001
-PULSE_MAX = 0.002
+# PULSE_MIN = 0.001
+# PULSE_MAX = 0.002
 
 ################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
 # GPIO.setmode(GPIO.BCM)
@@ -118,8 +102,8 @@ def init_GPIO():
     # right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
     # left_pwm.start(0)
     # right_pwm.start(0)
-    left_pwm = PWMOutputDevice(LEFT_PWM)
-    right_pwm = PWMOutputDevice(RIGHT_PWM)
+    # left_pwm = PWMOutputDevice(LEFT_PWM)
+    # right_pwm = PWMOutputDevice(RIGHT_PWM)
     left_dir = DigitalOutputDevice(LEFT_DIR)
     right_dir = DigitalOutputDevice(RIGHT_DIR)
 
@@ -127,13 +111,6 @@ def init_GPIO():
     right_dir.on()
 
     # Initialise AngularServo (now using seconds)
-    servo = AngularServo(
-        pin=SERVO_PIN,
-        min_angle=MIN_STEERING_ANGLE,
-        max_angle=MAX_STEERING_ANGLE,
-        min_pulse_width=PULSE_MIN,  # 0.001
-        max_pulse_width=PULSE_MAX   # 0.002
-    )
     servo.angle = 0
 
     GPIO_INITIALIZED = True
@@ -191,11 +168,8 @@ def set_servo_angle(angle):
     # Make sure the angle is clamped within the range of what you want.
     angle = max(min(angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
     servo.angle = angle
-
     # duty = np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [MIN_DUTY_CYCLE, MAX_DUTY_CYCLE])
     # servo_pwm.ChangeDutyCycle(duty)
-    angle = max(MIN_STEERING_ANGLE, min(MAX_STEERING_ANGLE, angle))
-    servo.angle = angle
     # pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
     # pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
@@ -225,9 +199,9 @@ def set_motor_speed(speed):
     # duty = speed * 100
     # left_pwm.ChangeDutyCycle(duty)
     # right_pwm.ChangeDutyCycle(duty)
-    duty = max(0.0, min(1.0, speed))
-    left_pwm.value = duty
-    right_pwm.value = duty
+    duty = max(0.0, min(1.0, speed)) * 100
+    left_pwm.ChangeDutyCycle(duty)
+    right_pwm.ChangeDutyCycle(duty)
 
 # This function stops the servo but doesn't turn it off
 def stop_servo():
@@ -249,10 +223,10 @@ def close_servo():
 
 # This function stops the motor but doesn't turn it off
 def stop_motors():
-    # left_pwm.ChangeDutyCycle(0)
-    # right_pwm.ChangeDutyCycle(0)
-    left_pwm.value = 0
-    right_pwm.value = 0
+    left_pwm.ChangeDutyCycle(0)
+    right_pwm.ChangeDutyCycle(0)
+    # left_pwm.value = 0
+    # right_pwm.value = 0
 
 # This function turns the motor off
 # def turn_off_motors():
@@ -281,11 +255,10 @@ def shutdown():
 
     left_dir.off()
     right_dir.off()
-    
-    left_pwm.close()
-    right_pwm.close()
+
+    left_pwm.stop()
+    right_pwm.stop()
     left_dir.close()
     right_dir.close()
-    # turn_off_servo()  # set servo to 0 angle, then detach
-    # finally:
-    #     cleanup_GPIO()
+    # set servo to 0 angle, then detach
+    GPIO.cleanup()
