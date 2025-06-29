@@ -2,10 +2,10 @@ import RPi.GPIO as GPIO
 from time import sleep
 
 # Define GPIO pins
-DIR_A = 5
+DIR_A = 6
 PWM_A = 13
 
-DIR_B = 6
+DIR_B = 5
 PWM_B = 12
 
 # GPIO setup
@@ -16,6 +16,10 @@ GPIO.setup(DIR_A, GPIO.OUT)
 GPIO.setup(PWM_A, GPIO.OUT)
 GPIO.setup(DIR_B, GPIO.OUT)
 GPIO.setup(PWM_B, GPIO.OUT)
+
+
+GPIO.output(DIR_A, GPIO.HIGH)
+GPIO.output(DIR_B, GPIO.HIGH)
 
 # Set up PWM at 1kHz frequency
 pwm_a = GPIO.PWM(PWM_A, 1000)
