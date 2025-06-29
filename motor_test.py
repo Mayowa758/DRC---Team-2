@@ -2,10 +2,10 @@ import RPi.GPIO as GPIO
 from time import sleep
 
 # Define GPIO pins
-DIR_A = 5
+DIR_A = 6
 PWM_A = 13
 
-DIR_B = 6
+DIR_B = 5
 PWM_B = 12
 
 # GPIO setup
@@ -30,15 +30,15 @@ def set_motor(dir_pin, pwm_obj, direction, speed_percent):
 
 try:
     print("Motors forward")
-    set_motor(DIR_A, pwm_a, "forward", 70)
-    set_motor(DIR_B, pwm_b, "forward", 70)
+    set_motor(DIR_A, pwm_a, "forward", 100)
+    set_motor(DIR_B, pwm_b, "forward", 100)
     sleep(2)
 
     print("Motors backward")
-    set_motor(DIR_A, pwm_a, "backward", 60)
-    set_motor(DIR_B, pwm_b, "backward", 60)
+    set_motor(DIR_A, pwm_a, "backward", 100)
+    set_motor(DIR_B, pwm_b, "backward", 100)
     sleep(2)
-
+    sleep(5)
     print("Motors stop")
     pwm_a.ChangeDutyCycle(0)
     pwm_b.ChangeDutyCycle(0)

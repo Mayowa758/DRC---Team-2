@@ -18,26 +18,41 @@
 # https://www.raspberrypi-spy.co.uk/tag/servo/
 #
 #--------------------------------------
-from gpiozero import Servo
+from gpiozero import AngularServo
 from time import sleep
 
 myGPIO=18
 
-myServo = Servo(myGPIO)
+
+# myServo = Servo(myGPIO)
+servo = AngularServo(
+  pin=myGPIO,
+  min_angle = -50,
+  max_angle = 50,
+  min_pulse_width= 0.0009,
+  max_pulse_width = 0.0021
+) 
+
+servo.angle = 0
 
 print("Using GPIO17")
 print("Using Gpiozero defaults for the servo class")
 
+def move_servo(start, end, delay = 0.02):
+  
+
 while True:
-  myServo.mid()
+  servo.angle = -30
+  print("Set to min position")
+  sleep(1)
+  servo.angle = 0
   print("Set to middle position")
   sleep(1)
-  myServo.min()
-  print("Set to minimum position")
+  servo.angle = 30
+  print("Set to max position")
   sleep(1)
-  myServo.mid()
+  servo.angle = 0
   print("Set to middle position")
   sleep(1)
-  myServo.max()
-  print("Set to maximum position")
-  sleep(1)
+
+  
