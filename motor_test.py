@@ -17,6 +17,10 @@ GPIO.setup(PWM_A, GPIO.OUT)
 GPIO.setup(DIR_B, GPIO.OUT)
 GPIO.setup(PWM_B, GPIO.OUT)
 
+
+GPIO.output(DIR_A, GPIO.HIGH)
+GPIO.output(DIR_B, GPIO.HIGH)
+
 # Set up PWM at 1kHz frequency
 pwm_a = GPIO.PWM(PWM_A, 1000)
 pwm_b = GPIO.PWM(PWM_B, 1000)
