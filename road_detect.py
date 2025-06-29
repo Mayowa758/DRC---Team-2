@@ -209,7 +209,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    # shutdown()
+                    shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
