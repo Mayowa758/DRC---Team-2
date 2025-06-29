@@ -60,59 +60,55 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     # Default values so the code doesn't break
     error = 0
     center_x = transformed_frame.shape[1] // 2
+    frame_center_x = transformed_frame.shape[1] // 2
 
-    # If valid blue and yellow contours peform the road detection functionality
-    if blue_contour and yellow_contour:
-        blue_line = get_largest_contour(blue_contour)
-        yellow_line = get_largest_contour(yellow_contour)
-
-        if blue_line is None and yellow_line is None:
-            return error, center_x
-
-        # Uses moments to find the centers of the blue and yellow line
-        M_blue = cv.moments(blue_line)
-        M_yellow = cv.moments(yellow_line)
-
-        if M_blue['m00'] != 0 and M_yellow['m00'] != 0:
-            cx_blue = int(M_blue['m10']/M_blue['m00'])
-            cy_blue = int(M_blue['m01']/M_blue['m00'])
-
-            cx_yellow = int(M_yellow['m10']/M_yellow['m00'])
-            cy_yellow = int(M_yellow['m01']/M_yellow['m00'])
-
-            center_x = (cx_blue + cx_yellow) // 2
-            center_y = (cy_blue + cy_yellow) // 2
-
-            frame_widthx = transformed_frame.shape[1]
-            frame_center_x = frame_widthx // 2
-            error = frame_center_x - center_x
-            # print(error)
-
-            # Line to show the line between the centroids
-            cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow),
-            (255, 255, 255), 1)
-            return (error, center_x)
-
-        if blue_line and yellow_line is None:
-            cx_blue = int(M_blue['m10'] / M_blue['m00'])
-            error = frame_center_x - (cx_blue - 50)  # bias to left
-            center_x = cx_blue
-            cv.circle(transformed_frame, (cx_blue, int(M_blue['m01'] / M_blue['m00'])), 5, (255, 0, 0), -1)
-
-        #  # Line to show the Frame center
-        if yellow_line and blue_line is None:
-            cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
-            error = frame_center_x - (cx_yellow + 50)  # bias to right
-            center_x = cx_yellow
-            cv.circle(transformed_frame, (cx_yellow, int(M_yellow['m01'] / M_yellow['m00'])), 5, (0, 255, 255), -1)
-
-        cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]),
-                (0, 0, 255), 2)
-        # Showcases the error
-        cv.putText(transformed_frame, f"The error is: {error}", (30,30), cv.FONT_HERSHEY_COMPLEX, 0.7,
-            (0, 255, 255), 2)
+    if not blue_contour and not yellow_contour:
+        # No contours at all
+        print("No blue or yellow contours detected.")
         return error, center_x
 
+    blue_line = get_largest_contour(blue_contour) if blue_contour else None
+    yellow_line = get_largest_contour(yellow_contour) if yellow_contour else None
+
+    M_blue = cv.moments(blue_line) if blue_line is not None else None
+    M_yellow = cv.moments(yellow_line) if yellow_line is not None else None
+    road_width_estimate = 300
+
+    if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0:
+        # Both lines are valid
+        cx_blue = int(M_blue['m10'] / M_blue['m00'])
+        cy_blue = int(M_blue['m01'] / M_blue['m00'])
+
+        cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
+        cy_yellow = int(M_yellow['m01'] / M_yellow['m00'])
+
+        center_x = (cx_blue + cx_yellow) // 2
+        print(center_x)
+        cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow), (255, 255, 255), 1)
+
+    elif M_blue and M_blue['m00'] != 0:
+        # Only blue line is valid
+        cx_blue = int(M_blue['m10'] / M_blue['m00'])
+        cy_blue = int(M_blue['m01'] / M_blue['m00'])
+        center_x = cx_blue - road_width_estimate # slight left bias
+        cv.circle(transformed_frame, (cx_blue, cy_blue), 5, (255, 0, 0), -1)
+
+    elif M_yellow and M_yellow['m00'] != 0:
+        # Only yellow line is valid
+        cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
+        cy_yellow = int(M_yellow['m01'] / M_yellow['m00'])
+        center_x = cx_yellow + road_width_estimate  # slight right bias
+        cv.circle(transformed_frame, (cx_yellow, cy_yellow), 5, (0, 255, 255), -1)
+
+    else:
+        # Moments exist but no valid area (m00 == 0), skip this frame
+        print("Contours found but zero area (m00 == 0). Skipping frame.")
+
+    # Visualize center line and error
+    error = frame_center_x - center_x
+    cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]), (0, 0, 255), 2)
+    cv.putText(transformed_frame, f"The error is: {error}", (30, 30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
+    return error, center_x
 
 # Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame):
@@ -213,7 +209,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    shutdown()
+                    # shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
@@ -226,8 +222,8 @@ def road_detect():
 
         # Obtain error for PID detection
         error, road_center_x = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        error = arrow_detection(transformed_frame, error, road_center_x)
-        error = obstacle_detection(hsv_img, error)
+        # error = arrow_detection(transformed_frame, error, road_center_x)
+        # error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
         current_time = time.time()
