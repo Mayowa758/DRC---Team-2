@@ -38,21 +38,28 @@ servo.angle = 0
 print("Using GPIO17")
 print("Using Gpiozero defaults for the servo class")
 
-def move_servo(start, end, delay = 0.02):
-  
+def move_servo(start, end, step=1, delay = 0.02):
+  if start < end: 
+    angle_range = range(start, end + 1, step)
+  else:
+    angle_range = range(start, end-1, -step)
+  for angle in angle_range:
+      servo.angle = angle
+      sleep(delay)
 
 while True:
-  servo.angle = -30
+  move_servo(0, -30)
   print("Set to min position")
   sleep(1)
-  servo.angle = 0
-  print("Set to middle position")
-  sleep(1)
-  servo.angle = 30
-  print("Set to max position")
-  sleep(1)
-  servo.angle = 0
+
+  move_servo(-30, 0)
   print("Set to middle position")
   sleep(1)
 
-  
+  move_servo(0, 30)
+  print("Set to max position")
+  sleep(1)
+
+  move_servo(30, 0)
+  print("Set to middle position")
+  sleep(1)
