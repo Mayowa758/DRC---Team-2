@@ -15,11 +15,13 @@ error = 0
 # left_arrow_templates, right_arrow_templates = load_templates()
 
 # Function is responsible for getting the video of the camera
-video = cv.VideoCapture(0)  # Try 1, 2, etc. if 0 fails
-
-if not video.isOpened():
-    print("Cannot open camera")
-    exit()
+while True:
+    video = cv.VideoCapture(0)
+    if not video.isOpened():
+        print("Cannot open camera")
+        exit()
+    else:
+        break
 window_width = 640
 window_height = 480
 
@@ -222,8 +224,8 @@ def road_detect():
 
         # Obtain error for PID detection
         error, road_center_x = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        # error = arrow_detection(transformed_frame, error, road_center_x)
-        # error = obstacle_detection(hsv_img, error)
+        error = arrow_detection(transformed_frame, error, road_center_x)
+        error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
         current_time = time.time()
