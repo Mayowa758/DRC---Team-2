@@ -173,7 +173,7 @@ def set_motor_speed(speed):
 # This function stops the servo but doesn't turn it off
 def stop_servo():
     # servo.angle = 0
-    pi.set_servo_pulsewidth(SERVO_PIN, 0)
+    servo.set_servo_pulsewidth(SERVO_PIN, 0)
     
 # # This function turns the servo motor off
 # def turn_off_servo():
@@ -200,6 +200,7 @@ def stop_motors():
 
 def shutdown():
     print("Shutting down...")
+    servo.set_servo_pulsewidth(SERVO_PIN, CENTRE_PULSE)
     stop_motors()
     stop_servo()
     left_pwm.stop()
