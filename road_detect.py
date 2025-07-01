@@ -39,10 +39,10 @@ def road_mask(blue, yellow):
 # This function is responsible for changing the normal view of camera to a birds-eye perspective
 def perspective_transform(img):
     # These values will need to change
-    tl = (150, 300)
-    bl = (0, 472)
-    tr = (480,  300)
-    br = (600, 472)
+    tl = (100, 200)
+    bl = (0, 400)
+    tr = (480,  200)
+    br = (600, 400)
 
     src_points = np.float32([tl, bl, tr, br])
     dst_points = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
@@ -51,7 +51,7 @@ def perspective_transform(img):
     cv.circle(img, bl, 5, (0, 0, 255), -1)
     cv.circle(img, tr, 5, (0, 0, 255), -1)
     cv.circle(img, br, 5, (0, 0, 255), -1)
-
+    cv.imshow('before', img)
     matrix = cv.getPerspectiveTransform(src_points, dst_points)
     transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
 
@@ -228,7 +228,7 @@ def road_detect():
         error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
         error = obstacle_detection(hsv_img, error)
-
+        print(f"Error {error}")
         # Converting error into steering angle using PID control
         current_time = time.time()
         global prev_time
@@ -237,6 +237,7 @@ def road_detect():
 
         # Obtaining steering angle and calculating speed from steering angle
         control = compute_PID_error(error, dt)
+        print(f"Control: {control}")
         steering_angle = compute_steering_angle(control)
         speed = calculate_speed(steering_angle)
 
