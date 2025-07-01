@@ -46,7 +46,7 @@ MAX_STEERING_ANGLE = 50
 MIN_STEERING_ANGLE = -50
 PULSE_MIN = 900
 PULSE_MAX = 2100
-CENTRE_PULSE = 0.0015
+CENTRE_PULSE = 1500
 
 ################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
 # Function to set up the GPIO
