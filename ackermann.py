@@ -177,7 +177,7 @@ def stop_servo():
     
 # This function turns the servo motor off
 def turn_off_servo():
-    servo.set_servo_pulsewidth(SERVO_PIN, 0)
+    # servo.set_servo_pulsewidth(SERVO_PIN, 0)
     servo.stop()
     # servo.angle = 0
     # time.sleep(1.0)
@@ -202,6 +202,6 @@ def shutdown():
     print("Shutting down...")
     stop_motors()
     stop_servo()
-    turn_off_servo()
     turn_off_motors()
+    turn_off_servo()
     GPIO.cleanup()
