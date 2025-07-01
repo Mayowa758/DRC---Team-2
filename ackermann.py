@@ -36,21 +36,17 @@ last_error = 0
 INTEGRAL_MAX = 100
 INTEGRAL_MIN = -100
 
-# Pulse constants for servo motor
-PULSE_MIN = 1000
-PULSE_MAX = 2000
-CENTRE_PULSE = 1500
-
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
 LOOKAHEAD_DISTANCE = 30
 SCALING_FACTOR = 0.5
 
-# Angle and Pulse constants
+# Constants for servo motor (angle and pulse constants)
 MAX_STEERING_ANGLE = 50
 MIN_STEERING_ANGLE = -50
-PULSE_MIN = 0.0009
-PULSE_MAX = 0.0021
+PULSE_MIN = 900
+PULSE_MAX = 2100
+CENTRE_PULSE = 0.0015
 
 ################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
 # Function to set up the GPIO
