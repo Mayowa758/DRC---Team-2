@@ -39,6 +39,7 @@ INTEGRAL_MIN = -100
 # Pulse constants for servo motor
 PULSE_MIN = 1000
 PULSE_MAX = 2000
+CENTRE_PULSE = 1500
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
@@ -77,14 +78,18 @@ def init_GPIO():
     right_pwm.start(0)
 
     # Initialise AngularServo (now using seconds)
-    servo = AngularServo(
-        pin=SERVO_PIN,
-        min_angle=MIN_STEERING_ANGLE,
-        max_angle=MAX_STEERING_ANGLE,
-        min_pulse_width=PULSE_MIN,  # 0.0009
-        max_pulse_width=PULSE_MAX   # 0.0021
-    )
-    servo.angle = 0
+    # servo = AngularServo(
+    #     pin=SERVO_PIN,
+    #     min_angle=MIN_STEERING_ANGLE,
+    #     max_angle=MAX_STEERING_ANGLE,
+    #     min_pulse_width=PULSE_MIN,  # 0.0009
+    #     max_pulse_width=PULSE_MAX   # 0.0021
+    # )
+    # servo.angle = 0
+    servo = pigpio.pi()
+    if not servo.connected:
+        raise IOError("Cannot connect to pigpio daemon!")
+    servo.set_servo_pulsewidth(SERVO_PIN, CENTER_PULSE)
     
     GPIO_INITIALIZED = True
     return left_pwm, right_pwm, servo
@@ -137,8 +142,9 @@ def set_servo_angle(angle):
     # This function maps the steering angle to microseconds (or duty cycle) - servos understand PWM pulses, not angles
     # angle = max(MIN_STEERING_ANGLE, min(MAX_STEERING_ANGLE, angle))
     # servo.angle = angle
+    angle = max(MIN_STEERING_ANGLE, min(MAX_STEERING_ANGLE, angle))
     pulse_width = int(np.interp(angle, [MIN_STEERING_ANGLE, MAX_STEERING_ANGLE], [PULSE_MIN, PULSE_MAX]))
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+    servo.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 
 ##################### Nick's code for setting the servo angle ##########################
@@ -171,12 +177,12 @@ def set_motor_speed(speed):
 # This function stops the servo but doesn't turn it off
 def stop_servo():
     # servo.angle = 0
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
+    pi.set_servo_pulsewidth(SERVO_PIN, 0)
     
 # This function turns the servo motor off
 def turn_off_servo():
-    servo_pwm.set_servo_pulsewidth(SERVO_PIN, 0)
-    servo_pwm.stop()
+    servo.set_servo_pulsewidth(SERVO_PIN, 0)
+    servo.stop()
     # servo.angle = 0
     # time.sleep(1.0)
     # servo.value = None
