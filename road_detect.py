@@ -184,7 +184,6 @@ def road_detect():
         global error
         # Setup for road detection
         _, img = video.read()
-        img = cv.resize(frame, (320, 240))
         if not _ or img is None:
             print("Frame capture failed, skipping this frame.")
             continue
