@@ -38,3 +38,4 @@ Temporary Items
 
 # ignore open-cv library
 .venv
+venv
