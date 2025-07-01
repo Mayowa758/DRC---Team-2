@@ -76,6 +76,9 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     M_yellow = cv.moments(yellow_line) if yellow_line is not None else None
     road_width_estimate = 300
 
+    cx_blue = 0
+    cx_yellow = 0
+
     if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0:
         # Both lines are valid
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
@@ -110,7 +113,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     error = frame_center_x - center_x
     cv.line(transformed_frame, (frame_center_x, 0), (frame_center_x, transformed_frame.shape[0]), (0, 0, 255), 2)
     cv.putText(transformed_frame, f"The error is: {error}", (30, 30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
-    return error, center_x
+    return error, center_x, cx_blue, cx_yellow
 
 # Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame):
@@ -223,7 +226,7 @@ def road_detect():
             continue
 
         # Obtain error for PID detection
-        error, road_center_x = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error, road_center_x, cx_blue, cy_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img, cx_blue, cx_yellow)
         error = arrow_detection(transformed_frame, error, road_center_x)
         error = obstacle_detection(hsv_img, error)
 

@@ -6,7 +6,7 @@ lower_black = np.array([100, 25, 165])
 upper_black = np.array([130, 50, 179])
 
 # Function that detects a black arrow on the ground and turns in the following direction
-def arrow_detection(frame, error, road_center_x):
+def arrow_detection(frame, error, road_center_x, hsv_img, cx_blue, cx_yellow):
     correction_factor = 100
 
     # Find contours of black arrow
@@ -20,7 +20,7 @@ def arrow_detection(frame, error, road_center_x):
         return error
     arrow_area = get_largest_contour(arrow_contours)
     arrow_M = cv.moments(arrow_area)
-
+    
     if arrow_M['m00'] == 0:
         return error
     if cv.contourArea(arrow_area) < 1000:
@@ -29,6 +29,10 @@ def arrow_detection(frame, error, road_center_x):
 
     # Calculate the centroid of the black arrow
     arrow_Mx = int(arrow_M['m10']/arrow_M['m00'])
+
+    if cx_blue is None and cx_yellow is None:
+        if arrow_Mx > cx_blue or arrow_Mx < cx_yellow:
+            return error
 
     # Visualisation for Debugging
     cv.circle(frame, (arrow_Mx, frame.shape[0] // 2), 5, (0, 255, 0), -1)  # Arrow center
