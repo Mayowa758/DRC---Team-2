@@ -38,7 +38,7 @@ INTEGRAL_MIN = -100
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
-LOOKAHEAD_DISTANCE = 30
+LOOKAHEAD_DISTANCE = 60
 SCALING_FACTOR = 0.5
 
 # Constants for servo motor (angle and pulse constants)
