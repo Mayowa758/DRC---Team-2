@@ -35,7 +35,7 @@ servo = AngularServo(
 
 servo.angle = 0
 
-print("Using GPIO17")
+print("Using GPIO18")
 print("Using Gpiozero defaults for the servo class")
 
 def move_servo(start, end, step=1, delay = 0.02):

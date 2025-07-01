@@ -68,8 +68,8 @@ def init_GPIO():
     GPIO.output(LEFT_DIR, GPIO.HIGH)
     GPIO.output(RIGHT_DIR, GPIO.HIGH)
     
-    left_pwm = GPIO.PWM(LEFT_PWM, 1000)  # 1kHz frequency
-    right_pwm = GPIO.PWM(RIGHT_PWM, 1000)
+    left_pwm = GPIO.PWM(LEFT_PWM, 100)  # 1kHz frequency
+    right_pwm = GPIO.PWM(RIGHT_PWM, 100)
     left_pwm.start(0)
     right_pwm.start(0)
 
@@ -116,7 +116,7 @@ def compute_steering_angle(control):
     
     # Clamp angle to (allowed) range
     steering_angle = max(min(steering_angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
-    
+    print(steering_angle)
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle

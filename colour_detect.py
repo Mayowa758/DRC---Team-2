@@ -58,7 +58,7 @@ def hsv_to_bgr(colour):
 
 # HSV values for the colours we will use
 blue = [110, 160, 180]
-yellow = [22, 52, 230]
+yellow = [177, 155, 200]
 red = [0, 255, 255]
 purple = [174, 81, 231]
 green = [60, 255, 128]
