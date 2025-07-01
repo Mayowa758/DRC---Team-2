@@ -115,11 +115,11 @@ def compute_steering_angle(control):
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
-    steering_angle = MAX_STEERING_ANGLE * np.tanh(desired_angle_deg / SCALING_FACTOR)
+    # steering_angle = MAX_STEERING_ANGLE * np.tanh(desired_angle_deg / SCALING_FACTOR)
     
     # Clamp angle to (allowed) range
-    steering_angle = max(min(steering_angle, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
-    print(steering_angle)
+    steering_angle = -max(min(desired_angle_deg, MAX_STEERING_ANGLE), MIN_STEERING_ANGLE)
+    # print(steering_angle)
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
