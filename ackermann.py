@@ -85,7 +85,7 @@ def init_GPIO():
     servo = pigpio.pi()
     if not servo.connected:
         raise IOError("Cannot connect to pigpio daemon!")
-    servo.set_servo_pulsewidth(SERVO_PIN, CENTER_PULSE)
+    servo.set_servo_pulsewidth(SERVO_PIN, CENTRE_PULSE)
     
     GPIO_INITIALIZED = True
     return left_pwm, right_pwm, servo

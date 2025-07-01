@@ -63,11 +63,13 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     error = 0
     center_x = transformed_frame.shape[1] // 2
     frame_center_x = transformed_frame.shape[1] // 2
+    cx_blue = 0
+    cx_yellow = 0
 
     if not blue_contour and not yellow_contour:
         # No contours at all
         print("No blue or yellow contours detected.")
-        return error, center_x
+        return error, center_x, cx_blue, cx_yellow
 
     blue_line = get_largest_contour(blue_contour) if blue_contour else None
     yellow_line = get_largest_contour(yellow_contour) if yellow_contour else None
@@ -75,9 +77,6 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     M_blue = cv.moments(blue_line) if blue_line is not None else None
     M_yellow = cv.moments(yellow_line) if yellow_line is not None else None
     road_width_estimate = 300
-
-    cx_blue = 0
-    cx_yellow = 0
 
     if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0:
         # Both lines are valid
@@ -226,8 +225,8 @@ def road_detect():
             continue
 
         # Obtain error for PID detection
-        error, road_center_x, cx_blue, cy_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img, cx_blue, cx_yellow)
-        error = arrow_detection(transformed_frame, error, road_center_x)
+        error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
         error = obstacle_detection(hsv_img, error)
 
         # Converting error into steering angle using PID control
