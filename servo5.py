@@ -16,5 +16,6 @@ sleep(1)
 pi.set_servo_pulsewidth(18, 2000) # position clockwise
 sleep(1)
 
+pi.set_servo_pulsewidth(18, 1500)
 pi.set_servo_pulsewidth(18, 0)
 pi.stop()
