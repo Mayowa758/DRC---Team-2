@@ -38,7 +38,7 @@ INTEGRAL_MIN = -100
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
-LOOKAHEAD_DISTANCE = 60
+LOOKAHEAD_DISTANCE = 250
 SCALING_FACTOR = 0.5
 
 # Constants for servo motor (angle and pulse constants)
@@ -94,6 +94,10 @@ def init_GPIO():
 # This function converts the PID error into a steering angle
 def compute_PID_error(error, dt):
     global integral, last_error
+
+    if (abs(error) > 300):
+
+
 
     integral += error * dt
     integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
