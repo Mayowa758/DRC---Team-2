@@ -50,13 +50,6 @@ def arrow_detection(frame, error, road_center_x, hsv_img, cx_blue, cx_yellow):
 
 # Function that detects purple obstacles and increases or decreases the PID error accordingly
 def obstacle_detection(transformed_frame_hsv, error):
-    # Some value for correcting the PID
-    correction_factor = 175
-    # Getting the contour of obstacle
-    purple_range = get_limits(purple)
-    purple_mask = get_mask(transformed_frame_hsv, purple_range, kernel)
-   
-def obstacle_detection(transformed_frame_hsv, error):
     correction_factor = 175
 
     # Get mask and contours for purple obstacle
