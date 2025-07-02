@@ -49,35 +49,41 @@ def arrow_detection(frame, error, road_center_x, hsv_img, cx_blue, cx_yellow):
     return error
 
 # Function that detects purple obstacles and increases or decreases the PID error accordingly
-def obstacle_detection(hsv_img, error):
+def obstacle_detection(transformed_frame_hsv, error):
     # Some value for correcting the PID
-    correction_factor = 25
+    correction_factor = 175
     # Getting the contour of obstacle
     purple_range = get_limits(purple)
-    purple_mask = get_mask(hsv_img, purple_range, kernel)
+    purple_mask = get_mask(transformed_frame_hsv, purple_range, kernel)
    
-    object_contour, _ = cv.findContours(purple_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    if not object_contour:
+def obstacle_detection(transformed_frame_hsv, error):
+    correction_factor = 175
+
+    # Get mask and contours for purple obstacle
+    purple_range = get_limits(purple)
+    purple_mask = get_mask(transformed_frame_hsv, purple_range, kernel)
+    contours, _ = cv.findContours(purple_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
         return error
-    cv.imshow('obstacl', purple_mask);
-    # Getting the center of mass of the object
-    object_area = get_largest_contour(object_contour)
 
-    object_M = cv.moments(object_area)
-    object_Mx = int(object_M["m10"]/object_M["m00"])
-    if object_M['m00'] == 0:
-        return error
+    object_area = get_largest_contour(contours)
+    M = cv.moments(object_area)
 
-    print("this is an obstacle")
-    # Get center of the camera frame
-    frame_center = hsv_img.shape[1] // 2
+    if M['m00'] == 0:
+        return error  # Avoid division by zero
 
-    # Perform the error correction
-    if object_Mx > frame_center:
-        error -= correction_factor
-        print("left")
-    else:
+    # Now safe to calculate centroid
+    cx = int(M["m10"] / M["m00"])
+    frame_center = transformed_frame_hsv.shape[1] // 2
+
+    # Apply error correction based on object location
+    if cx > frame_center:
         error += correction_factor
-        print("right")
+        print("Obstacle on RIGHT → steer LEFT → error +=", correction_factor)
+    else:
+        error -= correction_factor
+        print("Obstacle on LEFT → steer RIGHT → error -=", correction_factor)
+
     return error
 

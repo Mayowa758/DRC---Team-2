@@ -60,7 +60,7 @@ def hsv_to_bgr(colour):
 blue = [100, 70, 240]
 yellow = [20, 50, 230]
 # red = [0, 255, 255]
-purple = [140, 50, 179]
+purple = [170, 220, 70]
 green = [70, 70, 230]
 black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")

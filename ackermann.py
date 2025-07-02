@@ -42,8 +42,8 @@ LOOKAHEAD_DISTANCE = 250
 SCALING_FACTOR = 0.5
 
 # Constants for servo motor (angle and pulse constants)
-MAX_STEERING_ANGLE = 50
-MIN_STEERING_ANGLE = -50
+MAX_STEERING_ANGLE = 45
+MIN_STEERING_ANGLE = -45
 PULSE_MIN = 900
 PULSE_MAX = 2100
 CENTRE_PULSE = 1500
@@ -95,10 +95,6 @@ def init_GPIO():
 def compute_PID_error(error, dt):
     global integral, last_error
 
-    if (abs(error) > 300):
-
-
-
     integral += error * dt
     integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
     derivative = (error - last_error) / dt
@@ -127,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.85, min_speed=0.4):
+def calculate_speed(steering_angle, max_speed=0.5, min_speed=0.2):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 

@@ -81,7 +81,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
     if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0:
         # Both lines are valid
-        print("both lanes found")
+        # print("both lanes found")
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
         cy_blue = int(M_blue['m01'] / M_blue['m00'])
 
@@ -93,7 +93,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
         cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow), (255, 255, 255), 1)
 
     elif M_blue and M_blue['m00'] != 0:
-        print("only blue lane")
+        # print("only blue lane")
         # Only blue line is valid
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
         cy_blue = int(M_blue['m01'] / M_blue['m00'])
@@ -102,7 +102,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
     elif M_yellow and M_yellow['m00'] != 0:
         # Only yellow line is valid
-        print("only yellow lane")
+        # print("only yellow lane")
         cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
         cy_yellow = int(M_yellow['m01'] / M_yellow['m00'])
         center_x = cx_yellow + road_width_estimate  # slight right bias
@@ -126,7 +126,7 @@ def finish_line(transformed_frame):
     frame_x = transformed_frame.shape[1]
     frame_y = transformed_frame.shape[0]
     if green_contour:
-        print("Green line detected")
+        # print("Green line detected")
         green_area = get_largest_contour(green_contour)
         x, y, w, h = cv.boundingRect(green_area)
         # cv.imshow('finish line', green_mask)
@@ -242,7 +242,7 @@ def road_detect():
         # Obtain error for PID detection
         error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         # error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
-        # error = obstacle_detection(hsv_img, error)
+        error = obstacle_detection(transformed_frame_hsv, error)
         # print(error)
 
         # Converting error into steering angle using PID control
@@ -269,7 +269,7 @@ def road_detect():
             continue
 
         # cv.imshow('before', prev)
-        # cv.imshow('after', img)
+        cv.imshow('not bird', img)
         cv.imshow('bird', transformed_frame)
 
     # shutdown()
