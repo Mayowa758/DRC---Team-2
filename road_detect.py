@@ -39,9 +39,9 @@ def road_mask(blue, yellow):
 # This function is responsible for changing the normal view of camera to a birds-eye perspective
 def perspective_transform(img):
     # These values will need to change
-    tl = (150, 300)
+    tl = (0, 300)
     bl = (0, 472)
-    tr = (480,  300)
+    tr = (600,  300)
     br = (600, 472)
 
     src_points = np.float32([tl, bl, tr, br])
@@ -151,7 +151,7 @@ def road_setup(hsv_img, transformed_frame):
     yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
     drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    cv.imshow('drive_mask_bv', drive_mask_bv)
+    cv.imshow('drive_mask', drive_mask)
     # cv.imshow('blue', blue_mask)
     # cv.imshow('yellow', yellow_mask)
 
@@ -194,9 +194,11 @@ def road_detect():
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
+        cv.imshow('proper img', img)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
         transformed_frame = perspective_transform(img)
         transformed_frame_hsv = perspective_transform(hsv_img)
+        cv.imshow('transformed frame', transformed_frame)
         (blue_contour, yellow_contour) = road_setup(hsv_img, transformed_frame)
 
         # if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
@@ -224,13 +226,15 @@ def road_detect():
         if cv.waitKey(1) & 0xFF == ord(' '):
             started = True
 
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
         if not started:
             continue
 
         # Obtain error for PID detection
-        # error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        # error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
-        error = obstacle_detection(hsv_img, error)
+        error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
+        error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
+        # error = obstacle_detection(hsv_img, error)
         # print(error)
 
         # Converting error into steering angle using PID control
@@ -259,8 +263,6 @@ def road_detect():
         # cv.imshow('before', prev)
         # cv.imshow('after', img)
         cv.imshow('bird', transformed_frame)
-        if cv.waitKey(1) & 0xFF == ord('q'):
-            break
 
     # shutdown()
     video.release()
