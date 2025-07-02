@@ -138,11 +138,14 @@ prev_time = time.time()
 def road_setup(hsv_img, transformed_frame):
     # Get colour range
     blue_range = get_limits(blue)
-    yellow_range = get_limits(yellow)
+    # yellow_range = get_limits(yellow)
 
     # Create corresponding masks
     blue_mask = get_mask(hsv_img, blue_range, kernel)
-    yellow_mask = get_mask(hsv_img, yellow_range, kernel)
+    lower_yellow = np.array([15, 40, 100])
+    upper_yellow = np.array([35, 255, 255])
+    yellow_range = (lower_yellow, upper_yellow)
+    yellow_mask = cv.inRange(hsv_img, lower_yellow, upper_yellow)
     drive_mask = road_mask(blue_mask, yellow_mask)
 
     # Bird's eye transformation

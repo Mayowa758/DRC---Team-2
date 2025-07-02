@@ -24,9 +24,9 @@ GPIO_INITIALIZED = False
 ######################################### PID constants and global variables #####################################################
 # PID constants
 # These values will need to be adjusted
-KP = 0.4    # proportional constant
-KI = 0.01   # integral constant
-KD = 0.2    # derivative constant
+KP = 0.4    # proportional constant (0.4)
+KI = 0   # integral constant (0.01)
+KD = 0    # derivative constant (0.2)
 
 # PID state
 integral = 0
