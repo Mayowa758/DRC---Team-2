@@ -4,7 +4,7 @@ from util import *
 from configure.undistort_data import *
 from colour_detect import *
 from misc_detect import *
-# from ackermann import *
+from ackermann import *
 import time
 
 # Setting default initial error value
@@ -242,34 +242,34 @@ def road_detect():
 
         # Obtain error for PID detection
         error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
-        # error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
+        error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
         error = obstacle_detection(transformed_frame_hsv, error)
         # print(error)
 
         # Converting error into steering angle using PID control
-        # current_time = time.time()
-        # global prev_time
-        # dt = current_time - prev_time
-        # prev_time = current_time
+        current_time = time.time()
+        global prev_time
+        dt = current_time - prev_time
+        prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        # control = compute_PID_error(error, dt)
-        # print(control)
-        # steering_angle = compute_steering_angle(control)
-        # speed = calculate_speed(steering_angle)
+        control = compute_PID_error(error, dt)
+        print(control)
+        steering_angle = compute_steering_angle(control)
+        speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
-        # set_servo_angle(steering_angle)
-        # set_motor_speed(speed)
+        set_servo_angle(steering_angle)
+        set_motor_speed(speed)
 
         if finish_line(transformed_frame_hsv):
-            # stop_motors()
-            # stop_servo()
+            stop_motors()
+            stop_servo()
             finished = True
             started = False
             continue
 
-        # cv.imshow('before', prev)
+        cv.imshow('before', prev)
         cv.imshow('not bird', img)
         cv.imshow('bird', transformed_frame)
 
