@@ -55,8 +55,8 @@ def get_limits(hsv_colour, error=20) :
 
     # Handles every other colour in HSL colour wheel
     if (h == 30):
-        lowerLimit1 = h - 5, 30, 200
-        upperLimit1 = h + 5, 100, 250
+        lowerLimit1 = 15, 40, 100
+        upperLimit1 = 35, 255, 255
         lower1 = np.array(lowerLimit1, dtype=np.uint8)
         upper1 = np.array(upperLimit1, dtype=np.uint8)
         return [(lower1, upper1)]

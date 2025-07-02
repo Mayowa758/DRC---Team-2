@@ -254,8 +254,8 @@ def road_detect():
         set_motor_speed(speed)
 
         if finish_line(transformed_frame_hsv):
-            stop_motors()
-            stop_servo()
+            # stop_motors()
+            # stop_servo()
             finished = True
             started = False
             continue
