@@ -57,11 +57,11 @@ def hsv_to_bgr(colour):
     return tuple(int(x) for x in bgr_np[0][0])
 
 # HSV values for the colours we will use
-blue = [110, 160, 180]
-yellow = [30, 7, 151]
+blue = [100, 70, 240]
+yellow = [30, 50, 240]
 red = [0, 255, 255]
-purple = [174, 81, 231]
-green = [60, 255, 128]
+purple = [144, 110, 100]
+green = [70, 70, 230]
 black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")
 

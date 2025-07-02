@@ -66,6 +66,7 @@ def obstacle_detection(hsv_img, error):
     if object_M['m00'] == 0:
         return error
 
+    print("this is an obstacle")
     # Get center of the camera frame
     frame_center = hsv_img.shape[1] // 2
 

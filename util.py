@@ -4,7 +4,7 @@ import os
 
 # The function gets the colour ranges for inputed colours
 # The function also deals with the colour such as red that 'wrap' around the HSV colour wheel
-def get_limits(hsv_colour, error=10) :
+def get_limits(hsv_colour, error=20) :
 
     # Setting initial parameters for hsv
     h = hsv_colour[0]
@@ -54,6 +54,12 @@ def get_limits(hsv_colour, error=10) :
         return [(lower1, upper1), (lower2, upper2)]
 
     # Handles every other colour in HSL colour wheel
+    if (h == 30):
+        lowerLimit1 = h - 5, 30, 200
+        upperLimit1 = h + 5, 100, 250
+        lower1 = np.array(lowerLimit1, dtype=np.uint8)
+        upper1 = np.array(upperLimit1, dtype=np.uint8)
+        return [(lower1, upper1)]
     else:
         lowerLimit = max(h - error, 0), s_lower, v_lower
         upperLimit = min(h + error, 179), s_upper, v_upper
