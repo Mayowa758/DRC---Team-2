@@ -45,9 +45,9 @@ def draw_boundary_boxes(img, mask, label, colour):
                     cv.putText(img, label, (x,y), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.0, colour)
 
 # This function combines all the different masks together
-def mask(blue, yellow, green, red, purple):
+def mask(blue, yellow, green, purple):
     # bitwise or operation
-    combined  = blue | yellow | green | red | purple
+    combined  = blue | yellow | green | purple
     return combined
 
 # Function to convert hsv colour values to bgr
@@ -58,9 +58,9 @@ def hsv_to_bgr(colour):
 
 # HSV values for the colours we will use
 blue = [100, 70, 240]
-yellow = [30, 50, 240]
-red = [0, 255, 255]
-purple = [144, 110, 100]
+yellow = [20, 50, 230]
+# red = [0, 255, 255]
+purple = [140, 50, 179]
 green = [70, 70, 230]
 black = [0, 0, 0]
 kernel = np.ones((5,5), "uint8")
@@ -102,20 +102,20 @@ def run_video():
 
         blue_range = get_limits(blue)
         yellow_range = get_limits(yellow)
-        red_range = get_limits(red)
+        # red_range = get_limits(red)
         purple_range = get_limits(purple)
         green_range = get_limits(green)
 
         mask_blue = get_mask(hsv_img, blue_range, kernel)
         mask_yellow = get_mask(hsv_img, yellow_range, kernel)
-        mask_red = get_mask(hsv_img, red_range, kernel)
+        # mask_red = get_mask(hsv_img, red_range, kernel)
         mask_purple = get_mask(hsv_img, purple_range, kernel)
         mask_green = get_mask(hsv_img, green_range, kernel)
 
         colour_masks = [
             {"mask": mask_blue, "label": "blue", "colour": blue},
             {"mask": mask_yellow, "label": "yellow", "colour": yellow},
-            {"mask": mask_red, "label": "red", "colour": red},
+            # {"mask": mask_red, "label": "red", "colour": red},
             {"mask": mask_purple, "label": "purple", "colour": purple},
             {"mask": mask_green, "label": "green", "colour": green},
         ]
@@ -128,7 +128,7 @@ def run_video():
         for entry in colour_masks:
             draw_boundary_boxes(img, entry["mask"], entry["label"], entry["colour"])
 
-        master_mask = mask(mask_blue, mask_yellow, mask_red, mask_purple, mask_green)
+        master_mask = mask(mask_blue, mask_yellow, mask_purple, mask_green)
         # res = cv.bitwise_and(img, img, mask =master_mask)
         # contours, hierarchy = cv.findContours(mask_red, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 

@@ -68,7 +68,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
     if not blue_contour and not yellow_contour:
         # No contours at all
-        print("No blue or yellow contours detected.")
+        # print("No blue or yellow contours detected.")
         return error, center_x, cx_blue, cx_yellow
 
     blue_line = get_largest_contour(blue_contour) if blue_contour else None
@@ -87,7 +87,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
         cy_yellow = int(M_yellow['m01'] / M_yellow['m00'])
 
         center_x = (cx_blue + cx_yellow) // 2
-        print(center_x)
+        # print(center_x)
         cv.line(transformed_frame, (cx_blue, cy_blue), (cx_yellow, cy_yellow), (255, 255, 255), 1)
 
     elif M_blue and M_blue['m00'] != 0:
@@ -151,7 +151,7 @@ def road_setup(hsv_img, transformed_frame):
     yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
     drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    cv.imshow('drive_mask', drive_mask)
+    cv.imshow('drive_mask_bv', drive_mask_bv)
     # cv.imshow('blue', blue_mask)
     # cv.imshow('yellow', yellow_mask)
 
@@ -194,11 +194,11 @@ def road_detect():
         prev = img
         img = cv.remap(img, mapx, mapy, interpolation=cv.INTER_LINEAR)
         img = cv.GaussianBlur(img, (13, 13), 0)
-        cv.imshow('proper img', img)
+        # cv.imshow('proper img', img)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
         transformed_frame = perspective_transform(img)
         transformed_frame_hsv = perspective_transform(hsv_img)
-        cv.imshow('transformed frame', transformed_frame)
+        # cv.imshow('transformed frame', transformed_frame)
         (blue_contour, yellow_contour) = road_setup(hsv_img, transformed_frame)
 
         # if GPIO.input(ENABLE_PIN) == GPIO.HIGH:
@@ -234,7 +234,7 @@ def road_detect():
         # Obtain error for PID detection
         error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
-        # error = obstacle_detection(hsv_img, error)
+        error = obstacle_detection(hsv_img, error)
         # print(error)
 
         # Converting error into steering angle using PID control

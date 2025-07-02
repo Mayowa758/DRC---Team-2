@@ -55,12 +55,14 @@ def obstacle_detection(hsv_img, error):
     # Getting the contour of obstacle
     purple_range = get_limits(purple)
     purple_mask = get_mask(hsv_img, purple_range, kernel)
+   
     object_contour, _ = cv.findContours(purple_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     if not object_contour:
         return error
-
+    cv.imshow('obstacl', purple_mask);
     # Getting the center of mass of the object
     object_area = get_largest_contour(object_contour)
+
     object_M = cv.moments(object_area)
     object_Mx = int(object_M["m10"]/object_M["m00"])
     if object_M['m00'] == 0:
