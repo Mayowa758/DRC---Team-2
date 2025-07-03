@@ -111,7 +111,7 @@ def compute_steering_angle(control):
         return 0
         
     # Compute geometric angle using Pure Pursuit
-    desired_angle_rad = math.atan(control, LOOKAHEAD_DISTANCE)
+    desired_angle_rad = math.atan2(control, LOOKAHEAD_DISTANCE)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
