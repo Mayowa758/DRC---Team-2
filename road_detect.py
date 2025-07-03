@@ -128,7 +128,7 @@ def finish_line(transformed_frame_hsv):
     frame_y = transformed_frame_hsv.shape[0]
     cv.imshow('finish line', green_mask)
     if green_contour:
-        print("Green line detected")
+        # print("Green line detected")
         green_area = get_largest_contour(green_contour)
         x, y, w, h = cv.boundingRect(green_area)
         cv.rectangle(transformed_frame_hsv, (x,y), (x + w, y + h), green, 2)
@@ -139,7 +139,7 @@ def finish_line(transformed_frame_hsv):
     return False
 
 # Starting timer right before video capture
-# prev_time = time.time()
+prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -162,7 +162,7 @@ def road_setup(hsv_img, transformed_frame):
     drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
     cv.imshow('drive_mask_bv', drive_mask_bv)
-    cv.imshow('blue', blue_mask_bv)
+    # cv.imshow('blue', blue_mask_bv)
     # cv.imshow('yellow', yellow_mask_bv)
 
     # Gets contours of blue and yellow masks respectively
@@ -245,18 +245,18 @@ def road_detect():
         error, road_center_x, cx_blue, cx_yellow = road_detection(blue_contour, yellow_contour, transformed_frame, hsv_img)
         error = arrow_detection(transformed_frame, error, road_center_x, hsv_img, cx_blue, cx_yellow)
         error = obstacle_detection(transformed_frame_hsv, error)
-        # print(error)
+        print(error)
 
         # Converting error into steering angle using PID control
-        # current_time = time.time()
-        # global prev_time
-        # dt = current_time - prev_time
-        # prev_time = current_time
+        current_time = time.time()
+        global prev_time
+        dt = current_time - prev_time
+        prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        # control = compute_PID_error(error, dt)
+        control = compute_PID_error(error, dt)
         # print(control)
-        steering_angle = compute_steering_angle(error)
+        steering_angle = compute_steering_angle(control)
         speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
@@ -270,9 +270,11 @@ def road_detect():
             started = False
             continue
 
-        cv.imshow('before', prev)
-        cv.imshow('not bird', img)
+        # cv.imshow('before', prev)
+        # cv.imshow('not bird', img)
         cv.imshow('bird', transformed_frame)
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
 
     # shutdown()
     video.release()

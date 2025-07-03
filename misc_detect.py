@@ -73,10 +73,10 @@ def obstacle_detection(transformed_frame_hsv, error):
     # Apply error correction based on object location
     if cx > frame_center:
         error += correction_factor
-        print("Obstacle on RIGHT → steer LEFT → error +=", correction_factor)
+        # print("Obstacle on RIGHT → steer LEFT → error +=", correction_factor)
     else:
         error -= correction_factor
-        print("Obstacle on LEFT → steer RIGHT → error -=", correction_factor)
+        # print("Obstacle on LEFT → steer RIGHT → error -=", correction_factor)
 
     return error
 

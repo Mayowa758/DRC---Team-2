@@ -28,7 +28,7 @@ KP = 0.4    # proportional constant (0.4)
 KI = 0   # integral constant (0.01)
 KD = 0    # derivative constant (0.2)
 
-# PID state
+# PID stateq
 integral = 0
 last_error = 0
 
@@ -38,7 +38,7 @@ INTEGRAL_MIN = -100
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
-LOOKAHEAD_DISTANCE = 400
+LOOKAHEAD_DISTANCE = 250
 SCALING_FACTOR = 0.5
 
 # Constants for servo motor (angle and pulse constants)
@@ -107,7 +107,7 @@ def compute_PID_error(error, dt):
 # This function computes the steering angle from the adjusted error/control value
 def compute_steering_angle(control):
     # Avoiding small unnecessary conections (which will jitter the servo)
-    if abs(control) < 40:
+    if abs(control) < 5:
         return 0
         
     # Compute geometric angle using Pure Pursuit
@@ -123,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.85, min_speed=0.5):
+def calculate_speed(steering_angle, max_speed=0.7, min_speed=0.4):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
