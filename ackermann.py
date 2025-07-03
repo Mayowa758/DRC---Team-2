@@ -26,7 +26,7 @@ GPIO_INITIALIZED = False
 # These values will need to be adjusted
 KP = 0.4    # proportional constant (0.4)
 KI = 0   # integral constant (0.01)
-KD = 0    # derivative constant (0.2)
+KD = 0.1    # derivative constant (0.2)
 
 # PID states
 # integral = 0
@@ -92,15 +92,15 @@ def init_GPIO():
 
 #################################################### FUNCTIONS ####################################################################
 # This function converts the PID error into a steering angle
-def compute_PID_error(error):
-    # global integral, last_error
+def compute_PID_error(error, dt):
+    global last_error # , integral
 
     # integral += error * dt
     # integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
-    # derivative = (error - last_error) / dt
-    # last_error = error
+    derivative = (error - last_error) / dt
+    last_error = error
 
-    control = KP * error # + KI * integral + KD * derivative
+    control = KP * error + KD * derivative # + KI * integral
     
     return control
 
