@@ -16,21 +16,6 @@ error = 0
 # left_arrow_templates, right_arrow_templates = load_templates()
 
 # Function is responsible for getting the video of the camera
-while True:
-    video = cv.VideoCapture(0)
-    if not video.isOpened():
-        print("Cannot open camera")
-        exit()
-    else:
-        break
-window_width = 640
-window_height = 480
-
-# Change the frame resolution and rate of the camera
-video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
-video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
-video.set(cv.CAP_PROP_FPS, 30)
-
 tl = (0, 300)
 bl = (0, 472)
 tr = (600, 300)
@@ -191,6 +176,22 @@ def road_setup(hsv_img, transformed_frame):
 
 # MAIN RUNNING FUNCTION
 def road_detect():
+
+    while True:
+        video = cv.VideoCapture(0)
+        if not video.isOpened():
+            print("Cannot open camera")
+            exit()
+        else:
+            break
+    window_width = 640
+    window_height = 480
+
+    # Change the frame resolution and rate of the camera
+    video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
+    video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
+    video.set(cv.CAP_PROP_FPS, 30)
+
     started = False
     finished = False
 
@@ -236,11 +237,10 @@ def road_detect():
         #     print("Movement disabled. Waiting for enable switch...")
         #     time.sleep(0.5)
         #     continue
-
-        if finished:
+        key = cv.waitKey(1) & 0xFF
+        if finished:   
             print("Car has reached finish line! Waiting for 'r' to reset or 'q' to quit")
             while True:
-                key = cv.waitKey(1) & 0xFF
                 if key == ord('r'):
                     print("Resetting car...")
                     finished = False
@@ -252,10 +252,10 @@ def road_detect():
                     cv.destroyAllWindows()
                     return
 
-        if cv.waitKey(1) & 0xFF == ord(' '):
+        if key == ord(' '):
             started = True
 
-        if cv.waitKey(1) & 0xFF == ord('q'):
+        if key == ord('q'):
             break
         if not started:
             continue
