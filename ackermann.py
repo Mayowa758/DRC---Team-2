@@ -107,7 +107,7 @@ def compute_PID_error(error, dt):
 # This function computes the steering angle from the adjusted error/control value
 def compute_steering_angle(control):
     # Avoiding small unnecessary conections (which will jitter the servo)
-    if abs(control) < 5:
+    if abs(control) < 40:
         return 0
         
     # Compute geometric angle using Pure Pursuit

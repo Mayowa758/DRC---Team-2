@@ -12,6 +12,7 @@ error = 0
 # init_GPIO()
 
 # Getting the created arrow templates
+
 # left_arrow_templates, right_arrow_templates = load_templates()
 
 # Function is responsible for getting the video of the camera
