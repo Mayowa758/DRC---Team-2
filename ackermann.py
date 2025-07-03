@@ -28,9 +28,9 @@ KP = 0.4    # proportional constant (0.4)
 KI = 0   # integral constant (0.01)
 KD = 0    # derivative constant (0.2)
 
-# PID stateq
-integral = 0
-last_error = 0
+# PID states
+# integral = 0
+# last_error = 0
 
 # Integral limit to prevent windup
 INTEGRAL_MAX = 100
@@ -92,26 +92,26 @@ def init_GPIO():
 
 #################################################### FUNCTIONS ####################################################################
 # This function converts the PID error into a steering angle
-def compute_PID_error(error, dt):
-    global integral, last_error
+def compute_PID_error(error):
+    # global integral, last_error
 
-    integral += error * dt
-    integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
-    derivative = (error - last_error) / dt
-    last_error = error
+    # integral += error * dt
+    # integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
+    # derivative = (error - last_error) / dt
+    # last_error = error
 
-    control = KP * error + KI * integral + KD * derivative
+    control = KP * error # + KI * integral + KD * derivative
     
     return control
 
 # This function computes the steering angle from the adjusted error/control value
 def compute_steering_angle(control):
-    # Avoiding small unnecessary conections (which will jitter the servo)
-    if abs(control) < 5:
+    # Avoiding small unnecessary connections (which will jitter the servo)
+    if abs(control) < 10:
         return 0
         
     # Compute geometric angle using Pure Pursuit
-    desired_angle_rad = math.atan2(control, LOOKAHEAD_DISTANCE)
+    desired_angle_rad = math.atan(control, LOOKAHEAD_DISTANCE)
     desired_angle_deg = math.degrees(desired_angle_rad)
 
     # Smooth the response using tanh for stability
