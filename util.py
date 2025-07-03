@@ -68,28 +68,6 @@ def get_limits(hsv_colour, error=20) :
         upperLimit = np.array(upperLimit, dtype=np.uint8)
         return [(lowerLimit, upperLimit)]
 
-# Function is responsible for loading in arrow images
-# def load_templates(template_dir='configure/calib_arrow'):
-
-#     left_arrow_templates = []
-#     right_arrow_templates = []
-#     left_dir = os.path.join(template_dir, 'left_arrow')
-#     right_dir = os.path.join(template_dir, 'right_arrow')
-#     do_append(left_dir, left_arrow_templates)
-#     do_append(right_dir, right_arrow_templates)
-#     return left_arrow_templates, right_arrow_templates
-
-
-# Function is responsible for appending the images to the corresponding type of arrow
-# def do_append(dirname, template):
-#     if os.path.exists(dirname):
-#         for filename in os.listdir(dirname):
-#             filepath = os.path.join(dirname, filename)
-#             if filename.endswith(('.png', '.jpg', '.jpeg')):
-#                 img = cv.imread(filepath, cv.IMREAD_GRAYSCALE)
-#                 if img is not None:
-#                     template.append(img)
-
 # This function gets the largest contours extracted from camera view
 def get_largest_contour(contours):
     if contours:
