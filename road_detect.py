@@ -254,9 +254,9 @@ def road_detect():
         prev_time = current_time
 
         # Obtaining steering angle and calculating speed from steering angle
-        control = compute_PID_error(error, dt)
-        print(control)
-        steering_angle = compute_steering_angle(control)
+        # control = compute_PID_error(error, dt)
+        # print(control)
+        steering_angle = compute_steering_angle(error)
         speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
