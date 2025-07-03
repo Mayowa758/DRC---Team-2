@@ -31,6 +31,19 @@ video.set(cv.CAP_PROP_FRAME_WIDTH, window_width)
 video.set(cv.CAP_PROP_FRAME_HEIGHT, window_height)
 video.set(cv.CAP_PROP_FPS, 30)
 
+tl = (0, 300)
+bl = (0, 472)
+tr = (600, 300)
+br = (600, 472)
+
+src_points = np.float32([tl, bl, tr, br])
+dst_points = np.float32([[0, 0], [0, 480], [640, 0], [640, 480]])
+
+matrix = cv.getPerspectiveTransform(src_points, dst_points)
+
+def perspective_transform(img, matrix, window_width, window_height):
+    return cv.warpPerspective(img, matrix, (window_width, window_height))
+
 
 # This function creates a road mask which is combination of blue and yellow
 def road_mask(blue, yellow):
@@ -38,25 +51,25 @@ def road_mask(blue, yellow):
     return new_mask
 
 # This function is responsible for changing the normal view of camera to a birds-eye perspective
-def perspective_transform(img):
-    # These values will need to change
-    tl = (0, 300)
-    bl = (0, 472)
-    tr = (600,  300)
-    br = (600, 472)
+# def perspective_transform(img):
+#     # These values will need to change
+#     tl = (0, 300)
+#     bl = (0, 472)
+#     tr = (600,  300)
+#     br = (600, 472)
 
-    src_points = np.float32([tl, bl, tr, br])
-    dst_points = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
+#     src_points = np.float32([tl, bl, tr, br])
+#     dst_points = np.float32([[0,0], [0,480], [640, 0], [640, 480]])
 
-    cv.circle(img, tl, 5, (0, 0, 255), -1)
-    cv.circle(img, bl, 5, (0, 0, 255), -1)
-    cv.circle(img, tr, 5, (0, 0, 255), -1)
-    cv.circle(img, br, 5, (0, 0, 255), -1)
+#     cv.circle(img, tl, 5, (0, 0, 255), -1)
+#     cv.circle(img, bl, 5, (0, 0, 255), -1)
+#     cv.circle(img, tr, 5, (0, 0, 255), -1)
+#     cv.circle(img, br, 5, (0, 0, 255), -1)
 
-    matrix = cv.getPerspectiveTransform(src_points, dst_points)
-    transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
+#     matrix = cv.getPerspectiveTransform(src_points, dst_points)
+#     transformed_frame = cv.warpPerspective(img, matrix, (window_width, window_height))
 
-    return transformed_frame
+#     return transformed_frame
 
 # This function is responsible for the maths behind the road detection getting centers, moments etc.
 def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
@@ -190,13 +203,14 @@ def road_detect():
             continue
         else:
             # Applies camera undistortion right before we capture video
-            newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
-                                                            0, (window_width, window_height))
-            h, w = frame.shape[:2]
-            mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
             break
     if (attempts == 0):
             raise RuntimeError("The camera was not able to read after multiple attempts")
+
+    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (window_width, window_height),
+                                                    0, (window_width, window_height))
+    h, w = frame.shape[:2]
+    mapx, mapy = cv.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (w, h), cv.CV_16SC2)
 
     # The video capture of the camera
     while True:
@@ -211,8 +225,8 @@ def road_detect():
         img = cv.GaussianBlur(img, (13, 13), 0)
         # cv.imshow('proper img', img)
         hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        transformed_frame = perspective_transform(img)
-        transformed_frame_hsv = perspective_transform(hsv_img)
+        transformed_frame = perspective_transform(img, perspective_matrix, window_width, window_height)
+        transformed_frame_hsv = perspective_transform(hsv_img, perspective_matrix, window_width, window_height)
         # cv.imshow('transformed frame', transformed_frame)
         (blue_contour, yellow_contour) = road_setup(hsv_img, transformed_frame)
 
