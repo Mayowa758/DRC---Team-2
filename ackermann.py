@@ -38,7 +38,7 @@ INTEGRAL_MIN = -100
 
 ##################################### Computing speed and angle constants ########################################################
 # Pure pursuit constants
-LOOKAHEAD_DISTANCE = 250
+LOOKAHEAD_DISTANCE = 150
 SCALING_FACTOR = 0.5
 
 # Constants for servo motor (angle and pulse constants)
@@ -123,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.5, min_speed=0.2):
+def calculate_speed(steering_angle, max_speed=0.85, min_speed=0.5):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
