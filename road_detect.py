@@ -164,7 +164,7 @@ def road_setup(hsv_img, transformed_frame):
     yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
     drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    # cv.imshow('drive_mask_bv', drive_mask_bv)
+    cv.imshow('drive_mask_bv', drive_mask_bv)
     # cv.imshow('blue', blue_mask_bv)
     # cv.imshow('yellow', yellow_mask_bv)
 
@@ -292,7 +292,7 @@ def road_detect():
 
         # cv.imshow('before', prev)
         # cv.imshow('not bird', img)
-        # cv.imshow('bird', transformed_frame)
+        cv.imshow('bird', transformed_frame)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
