@@ -144,7 +144,7 @@ def finish_line(transformed_frame_hsv):
     return False
 
 # Starting timer right before video capture
-# prev_time = time.time()
+prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -285,12 +285,12 @@ def road_detect():
         set_servo_angle(steering_angle)
         set_motor_speed(speed)
 
-        if finish_line(transformed_frame_hsv):
-            stop_motors()
-            stop_servo()
-            finished = True
-            started = False
-            continue
+        # if finish_line(transformed_frame_hsv):
+        #     stop_motors()
+        #     stop_servo()
+        #     finished = True
+        #     started = False
+        #     continue
 
         # cv.imshow('before', prev)
         # cv.imshow('not bird', img)
