@@ -78,7 +78,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     M_blue = cv.moments(blue_line) if blue_line is not None else None
     M_yellow = cv.moments(yellow_line) if yellow_line is not None else None
 
-    road_width_estimate = 150
+    road_width_estimate = 250
 
     if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0:
         # Both lines are valid
