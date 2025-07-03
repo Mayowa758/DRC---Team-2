@@ -124,20 +124,22 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
 
 # Function that detects the finish line and gets the car to stop
 def finish_line(transformed_frame_hsv):
-    green_range = get_limits(green)
+    lower_green = np.array([55, 45, 155])
+    upper_green = np.array([95, 125, 255])
+    green_range = [(lower_green, upper_green)]
     green_mask = get_mask(transformed_frame_hsv, green_range, kernel)
     green_contour, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     frame_x = transformed_frame_hsv.shape[1]
     frame_y = transformed_frame_hsv.shape[0]
-    # cv.imshow('finish line', green_mask)
+    cv.imshow('finish line', green_mask)
     if green_contour:
-        # print("Green line detected")
+        print("Green line detected")
         green_area = get_largest_contour(green_contour)
         x, y, w, h = cv.boundingRect(green_area)
         cv.rectangle(transformed_frame_hsv, (x,y), (x + w, y + h), green, 2)
         if h > 10 and w > frame_x * 0.4 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            # sleep(2)
+            time.sleep(3)
             return True
     return False
 
@@ -268,10 +270,10 @@ def road_detect():
         print(error)
 
         # Converting error into steering angle using PID control
-        # current_time = time.time()
-        # global prev_time
-        # dt = current_time - prev_time
-        # prev_time = current_time
+        current_time = time.time()
+        global prev_time
+        dt = current_time - prev_time
+        prev_time = current_time
 
         # # Obtaining steering angle and calculating speed from steering angle
         control = compute_PID_error(error)
