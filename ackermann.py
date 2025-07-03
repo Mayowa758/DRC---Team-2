@@ -30,7 +30,7 @@ KD = 0.1    # derivative constant (0.2)
 
 # PID states
 # integral = 0
-# last_error = 0
+last_error = 0
 
 # Integral limit to prevent windup
 INTEGRAL_MAX = 100
