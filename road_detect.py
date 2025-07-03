@@ -142,7 +142,7 @@ def finish_line(transformed_frame_hsv):
     return False
 
 # Starting timer right before video capture
-prev_time = time.time()
+# prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -247,7 +247,7 @@ def road_detect():
                     break
                 elif key == ord('q'):
                     print("Exiting program...")
-                    # shutdown()
+                    shutdown()
                     video.release()
                     cv.destroyAllWindows()
                     return
@@ -257,6 +257,7 @@ def road_detect():
 
         if key == ord('q'):
             break
+        
         if not started:
             continue
 
@@ -267,13 +268,13 @@ def road_detect():
         print(error)
 
         # Converting error into steering angle using PID control
-        current_time = time.time()
-        global prev_time
-        dt = current_time - prev_time
-        prev_time = current_time
+        # current_time = time.time()
+        # global prev_time
+        # dt = current_time - prev_time
+        # prev_time = current_time
 
         # # Obtaining steering angle and calculating speed from steering angle
-        control = compute_PID_error(error, dt)
+        control = compute_PID_error(error)
         # print(control)
         steering_angle = compute_steering_angle(control)
         speed = calculate_speed(steering_angle)
