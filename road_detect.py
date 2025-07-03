@@ -70,7 +70,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     if not blue_contour and not yellow_contour:
         # No contours at all
         # print("No blue or yellow contours detected.")
-         cv.putText(transformed_frame, f"The error is: {error}", (30, 30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
+        cv.putText(transformed_frame, f"The error is: {error}", (30, 30), cv.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 255), 2)
         return error, center_x, cx_blue, cx_yellow
 
     blue_line = get_largest_contour(blue_contour) if blue_contour else None
@@ -131,7 +131,7 @@ def finish_line(transformed_frame_hsv):
     green_contour, _ = cv.findContours(green_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     frame_x = transformed_frame_hsv.shape[1]
     frame_y = transformed_frame_hsv.shape[0]
-    cv.imshow('finish line', green_mask)
+    # cv.imshow('finish line', green_mask)
     if green_contour:
         # print("Green line detected")
         green_area = get_largest_contour(green_contour)
@@ -166,7 +166,7 @@ def road_setup(hsv_img, transformed_frame):
     yellow_mask_bv = get_mask(hsv_img_bv, yellow_range, kernel)
     drive_mask_bv = road_mask(blue_mask_bv, yellow_mask_bv)
 
-    cv.imshow('drive_mask_bv', drive_mask_bv)
+    # cv.imshow('drive_mask_bv', drive_mask_bv)
     # cv.imshow('blue', blue_mask_bv)
     # cv.imshow('yellow', yellow_mask_bv)
 
@@ -277,7 +277,7 @@ def road_detect():
 
         # cv.imshow('before', prev)
         # cv.imshow('not bird', img)
-        cv.imshow('bird', transformed_frame)
+        # cv.imshow('bird', transformed_frame)
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
