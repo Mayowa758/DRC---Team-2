@@ -25,12 +25,12 @@ GPIO_INITIALIZED = False
 # PID constants
 # These values will need to be adjusted
 KP = 0.4    # proportional constant (0.4)
-KI = 0   # integral constant (0.01)
-KD = 0.   # derivative constant (0.2)
+# KI = 0   # integral constant (0.01)
+# KD = 0.   # derivative constant (0.2)
 
 # PID states
 # integral = 0
-last_error = 0
+# last_error = 0
 
 # Integral limit to prevent windup
 INTEGRAL_MAX = 100
@@ -92,16 +92,16 @@ def init_GPIO():
 
 #################################################### FUNCTIONS ####################################################################
 # This function converts the PID error into a steering angle
-def compute_PID_error(error, dt):
-    global last_error # , integral
+def compute_PID_error(error):
+    # global last_error # , integral
 
     # integral += error * dt
     # integral = max(min(integral, INTEGRAL_MAX), INTEGRAL_MIN)
-    derivative = (error - last_error) / dt
-    last_error = error
+    # derivative = (error - last_error) / dt
+    # last_error = error
 
-    control = KP * error + KD * derivative # + KI * integral
-    
+    control = KP * error 
+    # + KD * derivative  + KI * integral
     return control
 
 # This function computes the steering angle from the adjusted error/control value
@@ -123,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.8, min_speed=0.4):
+def calculate_speed(steering_angle, max_speed=0.7, min_speed=0.5):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 

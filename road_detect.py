@@ -82,7 +82,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     if M_blue and M_yellow and M_blue['m00'] != 0:
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
         cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
-    if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0 and cx_blue - 30 > cx_yellow and cy_yellow + 30 < cx_blue:
+    if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0 and cx_blue - 30 > cx_yellow:
         # Both lines are valid
         # print("both lanes found")
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
@@ -138,12 +138,12 @@ def finish_line(transformed_frame_hsv):
         cv.rectangle(transformed_frame_hsv, (x,y), (x + w, y + h), green, 2)
         if h > 10 and w > frame_x * 0.4 and y > frame_y * 0.7:
             print("We made it to the finish!!")
-            time.sleep(3)
+            # time.sleep(3)
             return True
     return False
 
 # Starting timer right before video capture
-prev_time = time.time()
+# prev_time = time.time()
 
 # Function is responsible for setting up masks and birds eye transformation for effective road detection
 def road_setup(hsv_img, transformed_frame):
@@ -269,13 +269,13 @@ def road_detect():
         # print(error)
 
         # Converting error into steering angle using PID control
-        current_time = time.time()
-        global prev_time
-        dt = current_time - prev_time
-        prev_time = current_time
+        # current_time = time.time()
+        # global prev_time
+        # dt = current_time - prev_time
+        # prev_time = current_time
 
         # # Obtaining steering angle and calculating speed from steering angle
-        control = compute_PID_error(error, dt)
+        control = compute_PID_error(error)
         print(control)
         steering_angle = compute_steering_angle(control)
         speed = calculate_speed(steering_angle)
