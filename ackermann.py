@@ -123,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.4, min_speed=0.2):
+def calculate_speed(steering_angle, max_speed=0.8, min_speed=0.4):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 

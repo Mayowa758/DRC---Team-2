@@ -82,7 +82,7 @@ def road_detection(blue_contour, yellow_contour, transformed_frame, frame):
     if M_blue and M_yellow and M_blue['m00'] != 0:
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
         cx_yellow = int(M_yellow['m10'] / M_yellow['m00'])
-    if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0 and cx_blue - 30 > cx_yellow:
+    if M_blue and M_yellow and M_blue['m00'] != 0 and M_yellow['m00'] != 0 and cx_blue - 30 > cx_yellow and cy_yellow + 30 < cx_blue:
         # Both lines are valid
         # print("both lanes found")
         cx_blue = int(M_blue['m10'] / M_blue['m00'])
@@ -281,8 +281,8 @@ def road_detect():
         speed = calculate_speed(steering_angle)
 
         # Steering angle and speed implemented on servo motor and DC motors respectively
-        # set_servo_angle(steering_angle)
-        # set_motor_speed(speed)
+        set_servo_angle(steering_angle)
+        set_motor_speed(speed)
 
         if finish_line(transformed_frame_hsv):
             stop_motors()

@@ -40,10 +40,10 @@ def arrow_detection(frame, error, road_center_x, hsv_img, cx_blue, cx_yellow):
 
     # Perform the error correction
     if arrow_Mx > road_center_x:
-        error -= correction_factor
+        error += correction_factor
         # print("left")
     elif arrow_Mx < road_center_x:
-        error += correction_factor
+        error -= correction_factor
         # print("right")
 
     return error
