@@ -46,7 +46,7 @@ MAX_STEERING_ANGLE = 45
 MIN_STEERING_ANGLE = -45
 PULSE_MIN = 900
 PULSE_MAX = 2100
-CENTRE_PULSE = 1500
+CENTRE_PULSE = 1600
 
 ################################### Connecting the servo motor and DC motor pins to the Raspberry Pi ##############################
 # Function to set up the GPIO
@@ -123,7 +123,7 @@ def compute_steering_angle(control):
     return steering_angle
 
 # This function calculates the speed of the wheels based on the steering angle
-def calculate_speed(steering_angle, max_speed=0.7, min_speed=0.5):
+def calculate_speed(steering_angle, max_speed=0.6, min_speed=0.4):
     angle = abs(steering_angle)
 
     speed = max_speed - (angle / MAX_STEERING_ANGLE) * (max_speed - min_speed) 
